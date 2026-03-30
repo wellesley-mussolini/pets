@@ -7,32 +7,10 @@ export const NotFound = () => {
 
 
       <div className="relative mx-auto flex h-[420px] w-full max-w-[520px] items-center justify-center">
-        {/* pegadas */}
-        {/* <div className="absolute left-6 top-12 h-10 w-10 rounded-full bg-orange-200/70" />
-          <div className="absolute left-4 top-8 h-4 w-4 rounded-full bg-orange-200/70" />
-          <div className="absolute left-14 top-5 h-4 w-4 rounded-full bg-orange-200/70" />
-          <div className="absolute left-20 top-10 h-4 w-4 rounded-full bg-orange-200/70" />
-
-          <div className="absolute right-10 top-20 h-10 w-10 rounded-full bg-stone-300/60" />
-          <div className="absolute right-8 top-16 h-4 w-4 rounded-full bg-stone-300/60" />
-          <div className="absolute right-18 top-12 h-4 w-4 rounded-full bg-stone-300/60" />
-          <div className="absolute right-2 top-18 h-4 w-4 rounded-full bg-stone-300/60" /> */}
 
         {/* chão */}
-        {/* <div className="absolute bottom-10 h-24 w-[88%] rounded-[999px] bg-[#ead8c2]/55 blur-[2px]" /> */}
+        <div className="absolute bottom-10 h-24 w-[88%] rounded-[999px] bg-[#ead8c2]/55 blur-[2px]" />
 
-        {/* ossinho */}
-        {/* <div className="absolute bottom-20 right-8 rotate-[-8deg]">
-            <div className="relative h-10 w-28">
-              <div className="absolute left-0 top-2 h-6 w-6 rounded-full bg-white border border-stone-300" />
-              <div className="absolute left-4 top-0 h-6 w-6 rounded-full bg-white border border-stone-300" />
-              <div className="absolute left-10 top-2 h-6 w-8 bg-white border-y border-stone-300" />
-              <div className="absolute right-4 top-2 h-6 w-6 rounded-full bg-white border border-stone-300" />
-              <div className="absolute right-0 top-0 h-6 w-6 rounded-full bg-white border border-stone-300" />
-            </div>
-          </div> */}
-
-        {/* coleira */}
         {/* coleira */}
         <div className="absolute left-1/2 top-[205px] z-20 -translate-x-1/2">
           <svg
@@ -83,23 +61,23 @@ export const NotFound = () => {
         </div>
 
         {/* placa 404 */}
-        {/* <div className="absolute bottom-8 z-20 flex items-end gap-2">
-            <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
-              <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
-                4
-              </span>
-            </div>
-            <div className="relative h-28 w-24 translate-y-2 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
-              <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
-                0
-              </span>
-            </div>
-            <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
-              <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
-                4
-              </span>
-            </div>
-          </div> */}
+        <div className="absolute top-72 z-20 flex items-end gap-2">
+          <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+            <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
+              4
+            </span>
+          </div>
+          <div className="relative h-28 w-24 translate-y-2 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+            <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
+              0
+            </span>
+          </div>
+          <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+            <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
+              4
+            </span>
+          </div>
+        </div>
 
         {/* cachorro */}
         <div className="relative z-10 h-[310px] w-[250px]">
