@@ -52,45 +52,43 @@ export const NotFound = () => {
             </div>
           </div>
 
-          {/* placa 404 quebrada */}
-          <div className="absolute bottom-8 z-20 flex items-end gap-1">
-            <div className="relative h-28 w-24 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+          {/* placa 404 */}
+          <div className="absolute bottom-8 z-20 flex items-end gap-2">
+            <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
               <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
                 4
               </span>
             </div>
-            <div className="relative h-26 w-24 translate-y-2 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+            <div className="relative h-28 w-24 translate-y-2 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
               <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
                 0
               </span>
-              <div className="absolute -right-1 top-8 h-10 w-10 rotate-45 border-r-2 border-t-2 border-stone-300 bg-[#f7efe3]" />
             </div>
-            <div className="relative h-28 w-24 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
+            <div className="relative h-28 w-24 -translate-y-3 rounded-2xl border-2 border-stone-300 bg-white shadow-md">
               <span className="absolute inset-0 flex items-center justify-center text-6xl font-black text-stone-700">
                 4
               </span>
-              <div className="absolute left-0 top-10 h-px w-8 rotate-[25deg] bg-stone-300" />
             </div>
           </div>
 
           {/* cachorro */}
-          <div className="relative z-10 h-[290px] w-[250px]">
-            {/* cauda */}
-            <div className="absolute left-[44px] top-[86px] z-0 origin-bottom-right animate-notfound-tail">
-              <div className="relative h-20 w-8 rounded-full bg-white shadow-[inset_-5px_-8px_0_0_#e7e5e4]" />
+          <div className="relative z-10 h-[310px] w-[250px]">
+            {/* cauda (atrás do corpo, saindo pela esquerda embaixo) */}
+            <div className="absolute left-[32px] bottom-[70px] z-0 origin-[center_bottom] -rotate-30 animate-notfound-tail">
+              <div className="relative h-12 w-5 rounded-full bg-[#ece7e1]" />
             </div>
 
             {/* corpo */}
-            <div className="absolute bottom-[34px] left-[42px] h-[150px] w-[170px] rounded-[48%] bg-white shadow-[inset_0_-16px_0_0_#ece7e1,0_18px_30px_rgba(120,90,60,0.08)] animate-notfound-body">
-              <div className="absolute left-[54px] top-[26px] h-[92px] w-[62px] rounded-b-[40px] rounded-t-[28px] bg-[#f5f0ea]" />
+            <div className="absolute bottom-[28px] left-[50px] z-1 h-[130px] w-[150px] rounded-[50%_50%_46%_46%] bg-white shadow-[inset_0_-14px_0_0_#ece7e1,0_14px_24px_rgba(120,90,60,0.06)] animate-notfound-body">
+              <div className="absolute left-[44px] top-[20px] h-[80px] w-[58px] rounded-b-[36px] rounded-t-[24px] bg-[#f5f0ea]" />
             </div>
 
             {/* patas */}
-            <div className="absolute bottom-[18px] left-[72px] h-20 w-10 rounded-full bg-white shadow-[inset_0_-10px_0_0_#ece7e1]" />
-            <div className="absolute bottom-[18px] left-[132px] h-20 w-10 rounded-full bg-white shadow-[inset_0_-10px_0_0_#ece7e1]" />
+            <div className="absolute bottom-[14px] left-[74px] z-2 h-16 w-9 rounded-full bg-white shadow-[inset_0_-8px_0_0_#ece7e1]" />
+            <div className="absolute bottom-[14px] left-[134px] z-2 h-16 w-9 rounded-full bg-white shadow-[inset_0_-8px_0_0_#ece7e1]" />
 
             {/* cabeça */}
-            <div className="absolute right-[18px] top-[18px] h-[170px] w-[170px] rounded-full bg-white shadow-[inset_0_-14px_0_0_#ece7e1,0_18px_30px_rgba(120,90,60,0.08)] animate-notfound-head">
+            <div className="absolute left-1/2 -translate-x-1/2 top-[10px] z-10 h-[168px] w-[168px] rounded-full bg-white shadow-[inset_0_-14px_0_0_#ece7e1,0_14px_24px_rgba(120,90,60,0.06)] animate-notfound-head">
               {/* manchas */}
               <div className="absolute left-[18px] top-[26px] h-[88px] w-[54px] rounded-[45%] bg-[#c97b36]" />
               <div className="absolute right-[22px] top-[24px] h-[82px] w-[50px] rounded-[45%] bg-[#c97b36]" />
