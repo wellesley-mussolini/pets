@@ -1,7 +1,7 @@
 import { DogSpinningCircle } from "../components/loading/dog-spinning-circle.component";
 import { DogWagTail } from "../components/loading/dog-wag-tail.component";
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 
 export default function Home() {
   return (
