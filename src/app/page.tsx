@@ -4,24 +4,12 @@ import { DogSpinningCircle } from "../components/loading/dog-spinning-circle.com
 import { DogWagTail } from "../components/loading/dog-wag-tail.component";
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
+import { NotFound } from "@/components/not-found/not-found.component";
 
 export default function Home() {
   return (
-    <div className="flex justify-center items-center flex-col gap-100 h-screen">
-      <Button
-        variant="secondary"
-        onClick={() =>
-          toast("Event has been created", {
-            description: "Sunday, December 03, 2023 at 9:00 AM",
-            action: {
-              label: "Undo",
-              onClick: () => console.log("Undo"),
-            },
-          })
-        }
-      >
-        Show Toast
-      </Button>
+    <div className="flex justify-center items-center flex-col">
+      <NotFound />
     </div>
   );
 }
