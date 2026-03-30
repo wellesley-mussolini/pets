@@ -1,15 +1,15 @@
+"use client";
+
 import { DogSpinningCircle } from "../components/loading/dog-spinning-circle.component";
 import { DogWagTail } from "../components/loading/dog-wag-tail.component";
 import { toast } from "sonner"
-import { Button } from "@/src/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="flex justify-center items-center flex-col h-screen">
-      <DogWagTail />
-      <DogSpinningCircle />
+    <div className="flex justify-center items-center flex-col gap-100 h-screen">
       <Button
-        variant="outline"
+        variant="secondary"
         onClick={() =>
           toast("Event has been created", {
             description: "Sunday, December 03, 2023 at 9:00 AM",
