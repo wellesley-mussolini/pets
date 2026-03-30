@@ -33,11 +33,54 @@ export const NotFound = () => {
           </div> */}
 
         {/* coleira */}
-        {/* <div className="absolute bottom-24 left-8 rotate-6">
-            <div className="relative h-10 w-28 rounded-full border-[10px] border-orange-500 bg-transparent shadow-sm">
-              <div className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-amber-700 bg-amber-300" />
-            </div>
-          </div> */}
+        {/* coleira */}
+        <div className="absolute left-1/2 top-[205px] z-20 -translate-x-1/2">
+          <svg
+            width="124"
+            height="52"
+            viewBox="0 0 124 52"
+            className="overflow-visible"
+            aria-hidden="true"
+          >
+            {/* sombra suave da coleira */}
+            <path
+              d="M14 14 Q62 48 110 14"
+              fill="none"
+              stroke="rgba(0,0,0,0.10)"
+              strokeWidth="10"
+              strokeLinecap="round"
+            />
+
+            {/* faixa principal */}
+            <path
+              d="M14 12 Q62 44 110 12"
+              fill="none"
+              stroke="#ff6a00"
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+
+            {/* brilho interno */}
+            <path
+              d="M22 14 Q62 38 102 14"
+              fill="none"
+              stroke="#ff9a1f"
+              strokeWidth="3"
+              strokeLinecap="round"
+              opacity="0.9"
+            />
+
+            {/* medalha */}
+            <circle
+              cx="62"
+              cy="36"
+              r="8"
+              fill="#facc15"
+              stroke="#b45309"
+              strokeWidth="2"
+            />
+          </svg>
+        </div>
 
         {/* placa 404 */}
         {/* <div className="absolute bottom-8 z-20 flex items-end gap-2">
@@ -61,8 +104,8 @@ export const NotFound = () => {
         {/* cachorro */}
         <div className="relative z-10 h-[310px] w-[250px]">
           {/* cauda (atrás do corpo, saindo pela esquerda embaixo) */}
-          <div className="absolute left-[52px] bottom-[86px] z-0 origin-[right_bottom] -rotate-[52deg] animate-notfound-tail">
-            <div className="relative h-[54px] w-[14px] rounded-full bg-white shadow-[inset_-2px_-4px_0_0_#ece7e1]" />
+          <div className="absolute left-[42px] bottom-[96px] z-0 origin-[right_bottom] -rotate-62 animate-notfound-tail">
+            <div className="relative h-[64px] w-[24px] rounded-full bg-white shadow-[inset_-2px_-4px_0_0_#ece7e1]" />
           </div>
           {/* corpo */}
           <div className="absolute bottom-[42px] left-[44px] z-[1] h-[142px] w-[162px] rounded-[48%_48%_42%_42%] bg-white shadow-[inset_0_-14px_0_0_#ece7e1,0_16px_28px_rgba(120,90,60,0.08)] animate-notfound-body">
