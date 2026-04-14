@@ -1,13 +1,7 @@
 "use client";
 
-export const BoneIcon = ({
-  onClick,
-  className
-}: {
-  onClick?: () => void,
-  className?: string
-}) => (
-  <svg width={32} height={32} onClick={onClick} className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const BoneIcon = ({ className }: { className?: string }) => (
+  <svg width={32} height={32} className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <clipPath id="boneClip">
         <path

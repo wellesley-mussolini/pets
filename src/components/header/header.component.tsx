@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback } from "react";
-import BoneIcon from "@/images/bone.image.png";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { BoneIcon } from "@/svgs/bone.svg";
+import Link from "next/link";
 
 export const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -35,14 +35,11 @@ export const Header = () => {
       shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] 
       dark:shadow-none 
       ">
-      <Image
-        src={BoneIcon}
-        alt="Bone"
-        width={0}
-        height={0}
-        className="w-8 hover:scale-120 transition-all duration-300 cursor-pointer"
-        onClick={() => router.push("/")}
-      />
+      <Link href="/">
+        <BoneIcon
+          className="w-8 hover:scale-120 transition-all duration-300 cursor-pointer"
+        />
+      </Link>
       <Button
         variant="ghost"
         size="icon"
