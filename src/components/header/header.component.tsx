@@ -7,10 +7,15 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { BoneIcon } from "@/svgs/bone.svg";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/browser";
+import { Pathnames } from "@/constants/pathnames.constant";
 
 export const Header = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const signOut = useCallback(() => createClient().auth.signOut()
+    .then(() => router.refresh()), [router]);
+
   const toggleTheme = useCallback(() => {
     document.documentElement.classList.add("transitioning");
     setTheme(theme === "dark" ? "light" : "dark");
