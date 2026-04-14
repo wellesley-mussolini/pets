@@ -40,15 +40,26 @@ export const Header = () => {
           className="w-8 hover:scale-120 transition-all duration-300 cursor-pointer"
         />
       </Link>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative cursor-pointer"
-        onClick={toggleTheme}
-      >
-        <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform duration-300 ease-in-out dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform duration-300 ease-in-out dark:rotate-0 dark:scale-100" />
-      </Button>
+
+      <div className="flex items-center justify-end flex-row gap-2 w-52">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative cursor-pointer"
+          onClick={toggleTheme}
+        >
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform duration-300 ease-in-out dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform duration-300 ease-in-out dark:rotate-0 dark:scale-100" />
+        </Button>
+        <Button
+          variant="default"
+          size="icon"
+          className="w-18 rounded-md cursor-pointer"
+          onClick={signOut}
+        >
+          SAIR
+        </Button>
+      </div>
     </header>
   );
 };
