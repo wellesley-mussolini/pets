@@ -90,20 +90,23 @@ export default function BreedsPage() {
               key={row.id}
               className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3"
             >
-              <div>
-                <p className="font-medium">{row.breed_group}</p>
-                <p className="text-muted-foreground text-sm">
-                  Porte: {BREED_SIZE_LABELS_PT_BR[row.size]} · {row.weight_min}–
-                  {row.weight_max} kg · vida {row.life_span_min}–
-                  {row.life_span_max} anos
+              <div className="flex flex-col gap-1 text-sm">
+                <div className="flex flex-row items-center gap-2 justify-between">
+                  <p className="font-medium text-base mb-2">{row.breed_group}</p>
+                  <time
+                    className="text-muted-foreground shrink-0 text-xs tabular-nums"
+                    dateTime={row.created_at}
+                  >
+                    {dataUtils.formatDateToPtBr(new Date(row.created_at))}
+                  </time>
+                </div>
+                <p className="text-muted-foreground">
+                  Porte {BREED_SIZE_LABELS_PT_BR[row.size]}
                 </p>
+                <p>Peso médio: {row.weight_min}–{row.weight_max} kg</p>
+                <p>Expectativa de vida: {row.life_span_min}–{row.life_span_max} anos</p>
               </div>
-              <time
-                className="text-muted-foreground shrink-0 text-xs tabular-nums"
-                dateTime={row.created_at}
-              >
-                {dataUtils.formatDateToPtBr(new Date(row.created_at))}
-              </time>
+
             </li>
           ))}
         </ul>

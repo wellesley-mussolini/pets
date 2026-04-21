@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex justify-center items-center flex-col">
-      <Link href="/breeds" className="text-2xl font-bold">Breeds</Link>
+      <Link href="/breeds" className="text-2xl font-bold text-blue-500 underline">Breeds</Link>
     </div>
   );
 }
