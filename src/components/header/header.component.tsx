@@ -1,70 +1,80 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { BoneIcon } from "@/svgs/bone.svg";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { BoneIcon } from "@/svgs/bone.svg";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { createClient } from "@/lib/supabase/browser";
-import { Pathnames } from "@/constants/pathnames.constant";
 
-export const Header = () => {
-  const { theme, setTheme } = useTheme();
+export function Header() {
   const router = useRouter();
-  const signOut = useCallback(() => createClient().auth.signOut()
-    .then(() => router.refresh()), [router]);
+  const [, startTransition] = useTransition();
 
-  const toggleTheme = useCallback(() => {
-    document.documentElement.classList.add("transitioning");
-    setTheme(theme === "dark" ? "light" : "dark");
-    setTimeout(() => {
-      document.documentElement.classList.remove("transitioning");
-    }, 350);
-  }, [theme, setTheme]);
+  /** Evita vários envios enquanto o signOut ainda está em andamento no cliente. */
+  const signOutRequestAlreadyRunningRef = useRef(false);
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const stopSigningOutUiAndAllowRetry = () => {
+    signOutRequestAlreadyRunningRef.current = false;
+    setIsSigningOut(false);
+  };
+
+  /**
+   * Encerra a sessão no Supabase e atualiza Server Components (`router.refresh`).
+   * Sucesso mantém loading até a UI trocar (sem liberar antes do refresh).
+   */
+  const handleSignOut = useCallback(async () => {
+    if (signOutRequestAlreadyRunningRef.current) return;
+    signOutRequestAlreadyRunningRef.current = true;
+    setIsSigningOut(true);
+
+    try {
+      const { error } = await createClient().auth.signOut();
+
+      if (error) {
+        toast.error(error.message);
+        stopSigningOutUiAndAllowRetry();
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      toast.error("Não foi possível sair. Tente de novo.");
+      stopSigningOutUiAndAllowRetry();
+    }
+  }, [router, startTransition]);
 
   return (
-    <header
-      className="
-      sticky 
-      top-0 
-      z-50 
-      flex 
-      justify-between 
-      items-center 
-      px-6 
-      py-4 
-      dark:bg-gray-950 
-      bg-background 
-      shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] 
-      dark:shadow-none 
-      ">
-      <Link href="/">
-        <BoneIcon
-          className="w-8 hover:scale-120 transition-all duration-300 cursor-pointer"
-        />
+    <header className="top-0 flex items-center justify-between px-6 py-4">
+      <Link href="/" className="inline-flex" aria-label="Ir para o início">
+        <BoneIcon className="w-8 cursor-pointer transition-all duration-300 hover:scale-120" />
       </Link>
 
-      <div className="flex items-center justify-end flex-row gap-2 w-52">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative cursor-pointer"
-          onClick={toggleTheme}
-        >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform duration-300 ease-in-out dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform duration-300 ease-in-out dark:rotate-0 dark:scale-100" />
-        </Button>
-        <Button
-          variant="default"
-          size="icon"
-          className="w-18 rounded-md cursor-pointer"
-          onClick={signOut}
-        >
-          SAIR
-        </Button>
-      </div>
+      <Button
+        variant="default"
+        size="sm"
+        type="button"
+        disabled={isSigningOut}
+        aria-busy={isSigningOut}
+        aria-label={isSigningOut ? "Encerrando sessão" : "Sair da conta"}
+        className="min-w-24 cursor-pointer gap-1.5 rounded-md"
+        onClick={handleSignOut}
+      >
+        {isSigningOut ? (
+          <>
+            <Spinner className="size-4" />
+            <span className="text-xs font-medium">Saindo</span>
+          </>
+        ) : (
+          "SAIR"
+        )}
+      </Button>
     </header>
   );
-};
+}

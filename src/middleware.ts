@@ -13,15 +13,14 @@ export async function middleware(request: NextRequest) {
 
   if (userIsNotAuthenticatedAndNotOnAuthPage) {
     return NextResponse.redirect(new URL(Pathnames.AUTH, request.url));
-  }
+  };
 
   if (userIsAuthenticatedAndOnAuthPage) {
     return NextResponse.redirect(new URL(Pathnames.HOME, request.url));
-  }
-
+  };
 
   return response;
-}
+};
 
 export const config = {
   matcher: [
