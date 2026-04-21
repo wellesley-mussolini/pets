@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "../components/ui/sonner";
-import { ThemeProvider } from "../providers/theme-provider";
+import { QueryClientProviderWrapper } from "../providers/query-client.provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,15 +31,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex h-screen flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
-        >
-          {children}
+        <QueryClientProviderWrapper>
           <Toaster richColors position="top-center" />
-        </ThemeProvider>
+          {children}
+        </QueryClientProviderWrapper>
       </body>
     </html>
   );
