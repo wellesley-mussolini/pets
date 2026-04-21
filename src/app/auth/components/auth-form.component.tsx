@@ -69,7 +69,7 @@ export function AuthForm() {
         toast.error(errorSearchingEmailByLogin.message);
         stopLoadingAndAllowNewAuthAttempt();
         return;
-      };
+      }
 
       if (!emailAssociatedWithLogin) {
         toast.error("Não foi encontrado uma conta com este login");
@@ -83,7 +83,13 @@ export function AuthForm() {
       });
 
       if (errorSignIn) {
-        toast.error(errorSignIn.message);
+        const signInMessage = errorSignIn.message;
+        const wrongPasswordTyped = signInMessage.includes("Invalid login credentials")
+        if (wrongPasswordTyped) {
+          toast.error("Senha digitada está incorreta.");
+        } else {
+          toast.error(signInMessage);
+        }
         stopLoadingAndAllowNewAuthAttempt();
         return;
       };
