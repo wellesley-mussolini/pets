@@ -2,6 +2,16 @@
 export default {
   theme: {
     extend: {
+      colors: {
+        primary: {
+          DEFAULT: "#2563eb",
+          foreground: "#ffffff",
+        },
+        destructive: {
+          DEFAULT: "#dc2626",
+          foreground: "#fafafa",
+        },
+      },
       keyframes: {
         "notfound-tail": {
           "0%, 100%": { transform: "rotate(-15deg)" },

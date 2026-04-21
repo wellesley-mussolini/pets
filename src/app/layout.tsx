@@ -32,7 +32,7 @@ export default function RootLayout({
     >
       <body className="flex h-screen flex-col">
         <QueryClientProviderWrapper>
-          <Toaster richColors position="top-center" />
+          <Toaster expand richColors position="top-center" />
           {children}
         </QueryClientProviderWrapper>
       </body>
