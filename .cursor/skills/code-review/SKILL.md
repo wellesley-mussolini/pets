@@ -1,316 +1,411 @@
 ---
-name: frontend-code-review
-description: Review frontend code in this Next.js 16/React 19 project for architecture, naming clarity, component organization, data flows, code reuse, and alignment with project standards. Use when reviewing code changes, identifying refactoring opportunities, checking nomenclature against the project rule, or assessing component placement and responsibility. Automatically applied by the code-review agent.
+name: code-review
+description: Revisa e padroniza código de qualquer parte do projeto (frontend, backend, utils, tipos, configurações). Identifica desvios de arquitetura, nomenclaturas genéricas, duplicações, código morto, baixa legibilidade, e estruturas mal organizadas. Valida alinhamento com padrões do projeto, reutilização, colocation, e segurança de refatoração. Aplicado automaticamente pelo agent de code-review.
 ---
 
-# Frontend Code Review Skill
+# Skill: Code Review e Padronização de Projeto
 
-This skill guides comprehensive code review for the **pets** project (Next.js 16 App Router, React 19, TypeScript, Supabase, React Query, Tailwind CSS).
+Guia completo e escalável para revisar **qualquer código** do projeto **pets** (Next.js 16, React 19, TypeScript, Supabase, React Query, Tailwind CSS).
 
-Review code **module by module and file by file**, identifying deviations from standard, duplications, low readability, poor naming, dead code, and misplaced structures. Keep code **clean, scalable, reusable, well-written, properly indented, and aligned with existing project patterns**.
-
----
-
-## Project Architecture Overview
-
-**Stack**: Next.js 16 App Router, React 19, TypeScript (strict), Supabase (auth + data), React Query, Tailwind CSS v4, shadcn/ui, Vitest.
-
-**Layer structure**:
-- **App Router** (`src/app/`): Route segments with colocation pattern
-- **Middleware** (`src/middleware.ts`): Auth gate + session refresh
-- **Lib** (`src/lib/`): Supabase clients and shared utilities
-- **Providers** (`src/providers/`): React Query, context
-- **Components** (`src/components/`): UI primitives and app chrome
-- **Route-local** colocation: Each feature folder contains its own types, zod schemas, utils, and components (e.g. `(main)/breeds/` has `components/`, `types/`, `utils/`, `zod/`)
-
-**Entry point**: `src/app/layout.tsx` (fonts, QueryClient, Sonner), then `(main)/layout.tsx` (Header + main), or `auth/layout.tsx` (auth pages).
+Revise **arquivo por arquivo e módulo por módulo**, identificando desvios de padrão, duplicações, baixa legibilidade, nomenclaturas ruins, código morto, e estruturas mal organizadas. Mantenha o código **limpo, escalável, reutilizável, bem escrito, bem indentado e alinhado com padrões existentes**.
 
 ---
 
-## Nomenclature Rule
+## Princípio Fundamental: Nomenclatura Clara
 
-**Always enforce clarity first.** Reference `.cursor/rules/nomenclaturas.mdc`:
+**Referência obrigatória**: `.cursor/rules/nomenclaturas.mdc`
 
-- ✅ Names must communicate exactly what they represent, do, or hold
-- ✅ Code structure readable **by name alone**, without reading implementation
-- ✅ Prefer explicit, domain-aligned names over generic ones
-- ✅ **Portuguese is acceptable** for user-facing copy and domain-specific helpers; keep **code identifiers in English** where it follows conventions (React, Next.js, libraries)
-- ✅ Follow language/ecosystem conventions (casing, file patterns) **without sacrificing clarity**
+A clareza é **prioridade máxima** em qualquer identificador:
 
-**Red flags**:
-- Generic names: `helper`, `utils`, `data`, `handler`, `component`
-- Ambiguous abbreviations: `fmt`, `msg`, `val`, `comp`
-- Mixed naming styles within related files
-- Inconsistent use of Portuguese vs English in the same domain
+- ✅ **Nomes comunicam exatamente**: o que representa, o que faz, qual responsabilidade possui
+- ✅ **Código legível apenas por nomes**: sem ler implementação, deve ser intuitivo
+- ✅ **Específico e explícito**: nunca genérico quando alternativa clara existe
+- ✅ **Alinhado ao domínio**: português aceitável para helpers de domínio e copy do usuário; código base em English
 
-**Examples**:
-- ✅ `formatarDataParaPtBr` (domain helper, Portuguese OK)
-- ✅ `LogoutButton.component.tsx` (clear action, explicit suffix)
-- ✅ `userIsAuthenticatedAndOnAuthPage` (verbose boolean, aligns with project style)
-- ❌ `formatDate` (ambiguous: what format? locale?)
-- ❌ `Handler.tsx` (does what?)
-- ❌ `util.ts` (what utility?)
+**Regra de ouro**: Se o nome não responder claramente "O que é isso?", "O que faz?" ou "Qual dado representa?", está errado.
+
+### Red Flags de Nomenclatura
+
+| Errado | Problema | Correto |
+|--------|----------|---------|
+| `helper.ts` | O que ajuda? | `format-date-to-pt-br.ts` |
+| `utils.ts` | Utilidade de quê? | `breed-size-classification.utils.ts` |
+| `data.ts` | Qual dado? | `fetch-breeds-from-supabase.ts` |
+| `fmt()` | Formata o quê? | `formatarDataParaPtBr()` |
+| `getData()` | Obtém qual dado? | `fetchBreedFromSupabase()` |
+| `isOpen` | O que está aberto? | `isBreedFormDialogOpen` |
+| `Handler` | Manipula o quê? | `SubmitBreedFormHandler` |
+| `handle()` | Trata o quê? | `handleBreedSizeChange()` |
+| `state` | Qual estado? | `breedFormValues` |
+| `component` | Qual componente? | `BreedForm.component.tsx` |
 
 ---
 
-## Key Review Dimensions
+## Estrutura e Padrões do Projeto
 
-### 1. Architecture and Responsibility
+### Colocation Pattern (Obrigatório para Features)
 
-**Check**:
-- Is this file in the right place? (routes in `src/app/`, primitives in `src/components/ui/`, app components in route-local `components/`, types in route-local `types/` or `*.types.ts`)
-- Is responsibility single and clear? (no god components, no mixed concerns)
-- Are Supabase clients used correctly? (browser client from `"use client"`, server from server components or middleware)
-- Are there unnecessary dependencies on external files when values could be co-located?
+Cada feature deve conter **seus próprios tipos, schemas, utilidades e componentes**:
 
-**Examples**:
-- ✅ `breeds/components/breed-form.component.tsx` with local `../zod/breeds-form.zod.ts` and `../types/breed.types.ts`
-- ❌ Sharing zod schemas across distant routes; import from `src/utils/shared-zod.ts` instead of co-location
-
-### 2. Naming Clarity
-
-**Check**:
-- Do variable/function/component names describe their role exactly?
-- Is naming consistent across the project? (check similar patterns in `breeds/`, `auth/`, etc.)
-- Are booleans verbose? (e.g. `isLoading`, `userCanDelete`, not just `can`, `ready`)
-- Are abbreviations avoided? (spell out domain terms)
-- Does the name answer: What is this? What does it do? What data does it hold?
-
-**Apply the nomenclature rule**: unclear = wrong.
-
-**Examples**:
-- ✅ `useBreedFormSubmit()` (what form, what action)
-- ✅ `BreedFormValues` (inferred from Zod, clear type)
-- ✅ `isBreedListEmpty` (boolean state, explicit)
-- ❌ `useSubmit()` (submit what?)
-- ❌ `FormValues` (values of which form?)
-- ❌ `isEmpty` (what is empty? where?)
-
-### 3. Component Organization
-
-**Colocation pattern**: Features must own their shape.
-
-**Correct structure**:
 ```
 src/app/(main)/breeds/
-  ├── page.tsx                        # Main route
-  ├── components/
+  ├── page.tsx                    # Rota principal
+  ├── layout.tsx                  # Layout se necessário
+  ├── components/                 # Componentes da feature
   │   ├── breed-list.component.tsx
-  │   ├── breed-card.component.tsx
-  │   └── breed-form.component.tsx
-  ├── types/
+  │   ├── breed-form.component.tsx
+  │   └── breed-card.component.tsx
+  ├── types/                      # Tipos específicos
   │   └── breed.types.ts
-  ├── zod/
-  │   └── breeds-form.zod.ts          # Inferred: BreedFormValues, etc.
-  └── utils/
+  ├── zod/                        # Validação e schemas
+  │   └── breeds-form.zod.ts
+  └── utils/                      # Utilidades da feature
       └── classify-breed-size.utils.ts
 ```
 
-**Check**:
-- Feature components in `components/` (not scattered in `src/components/`)
-- Feature types in local `types/` (not in global `types/`)
-- Feature zod in local `zod/` (not mixed with UI in page)
-- Feature utils in local `utils/` (or `src/utils/` if truly cross-feature)
-- Global primitives (buttons, inputs, dialogs) **only** in `src/components/ui/`
-- App chrome (header, sidebar) in `src/components/` top level
+**Regra**: Nunca coloque lógica de uma feature em `src/components/` ou `src/utils/` com o mesmo propósito que seria colocado na feature-local.
 
-### 4. Client vs Server Boundaries
+**Exceções**:
+- Primitivas UI (`src/components/ui/`) → **apenas shadcn**
+- Chrome da app (`src/components/header/`, `src/components/sidebar/`) → global
+- Utilidades verdadeiramente compartilhadas (`src/utils/`, `src/lib/`, `src/constants/`) → cross-feature
 
-**Check**:
-- Pages that read from Supabase or use React Query have `"use client"` and import browser client
-- Server components don't use hooks or event handlers
-- Middleware correctly gates auth routes (check `src/middleware.ts` pattern)
-- No client-side data fetching without React Query wrapper (consistency)
+### Planta do Projeto
 
-**Current pattern**:
-- `(main)/breeds/page.tsx` is `"use client"`, uses `useQuery` from React Query
-- `auth/page.tsx` is `"use client"`, uses Supabase browser client
-- Forms are `"use client"` with `useForm` + `useMutation` pattern
+```
+src/
+  ├── app/
+  │   ├── layout.tsx              # Root: fonts, providers, Sonner
+  │   ├── globals.css             # Tailwind imports
+  │   ├── (main)/
+  │   │   ├── layout.tsx          # Header + main container
+  │   │   ├── page.tsx            # Home
+  │   │   └── breeds/             # Feature: breeds
+  │   ├── auth/                   # Feature: autenticação
+  │   ├── middleware.ts           # Auth gate + session refresh
+  ├── components/
+  │   ├── ui/                     # Primitivas shadcn (não mover)
+  │   └── header/                 # Chrome da app
+  ├── lib/
+  │   ├── utils.ts                # `cn()` do Tailwind
+  │   └── supabase/               # Clientes Supabase
+  ├── providers/                  # React Query, context
+  ├── constants/                  # Rotas, valores globais
+  ├── hooks/                      # Custom hooks globais
+  ├── context/                    # Context globais
+  └── utils/                      # Utilidades cross-feature
+```
 
-### 5. Data Flow and React Query
+---
 
-**Check**:
-- Reads use `useQuery` with a stable key: `['breeds']`, `['breeds', breedId]`
-- Mutations use `useMutation` and call `useQueryClient().invalidateQueries()`
-- Error handling is explicit (toast, redirect, or render fallback)
-- Loading states are managed (skeleton or spinner)
-- No inline `fetch()` without React Query; always use wrapper
+## Dimensões de Revisão
 
-**Examples**:
-- ✅ Mutation invalidates after success: `queryClient.invalidateQueries({ queryKey: ['breeds'] })`
-- ❌ Forgetting to invalidate after form submission (stale data)
+### 1. Nomenclatura e Clareza
 
-### 6. Form Validation and Types
+**Checklist**:
+- [ ] Nomes de arquivos são descritivos e específicos?
+- [ ] Variáveis/funções respondem "O que é?" ou "O que faz?"?
+- [ ] Evita genéricos: `helper`, `util`, `data`, `handler`, `component`?
+- [ ] Booleans são explícitos? (`isBreedListEmpty`, não `isEmpty`)
+- [ ] Abreviações foram evitadas? (Spell out domain terms)
+- [ ] Nomenclatura alinhada com outros arquivos similares no projeto?
 
-**Check**:
-- Zod schemas colocated in `zod/` folder within the feature
-- Inferred types exported: `type BreedFormValues = z.infer<typeof breedsFormZod>`
-- react-hook-form uses `zodResolver` from Zod schema
-- Validation messages in Portuguese (user-facing), schema definitions clear
+**Ação**: Se encontrar nome genérico, solicite renomeação antes de aprovar.
 
-**Example pattern**:
+### 2. Colocation e Organização
+
+**Checklist**:
+- [ ] Tipos específicos da feature estão em `types/`?
+- [ ] Zod schemas estão em `zod/`?
+- [ ] Componentes da feature estão em `components/`?
+- [ ] Utilidades específicas estão em `utils/` (local ou global)?
+- [ ] UI primitivas **apenas** em `src/components/ui/`?
+- [ ] Chrome da app em `src/components/` (não em features)?
+
+**Ação**: Se componente/tipo/util estiver fora do lugar, peça reorganização.
+
+### 3. Duplicação e Reutilização
+
+**Checklist**:
+- [ ] Lógica/código não aparece em dois ou mais arquivos?
+- [ ] Utilidades compartilhadas estão em `src/utils/` ou `src/lib/`?
+- [ ] Schemas/validações compartilhadas vivem em um local único?
+- [ ] Componentes não são clones uns dos outros?
+
+**Ação**: Se encontrar duplicação, extraia para utilidade ou hook compartilhado.
+
+### 4. Legibilidade e Complexidade
+
+**Checklist**:
+- [ ] Funções são pequenas e focadas em uma responsabilidade?
+- [ ] Nível de indentação é raso (≤ 3 níveis)?
+- [ ] Lógica condicional é clara, sem nesting profundo?
+- [ ] Variáveis temporárias têm nomes explícitos?
+- [ ] Blocos de código longos podem ser extraídos em funções?
+
+**Ação**: Refatore para simplificar sem alterar comportamento.
+
+### 5. Importações e Dependências
+
+**Checklist**:
+- [ ] Todas importações são usadas?
+- [ ] Caminhos `@/` existem (sem quebrados)?
+- [ ] Não há imports circulares?
+- [ ] Ordem de imports é consistente (ou usa sort automático)?
+- [ ] Sem dead code ou imports de arquivos deletados?
+
+**Ação**: Remova imports não usados. Avise sobre imports quebrados.
+
+### 6. Alinhamento com Padrões Existentes
+
+**Checklist**:
+- [ ] Segue o padrão de colocation como `breeds/` e `auth/`?
+- [ ] Nomes seguem convenção do projeto? (`*.component.tsx`, `*.zod.ts`, `*.utils.ts`)
+- [ ] Data fetching usa React Query (não bare `fetch`)?
+- [ ] Forms usam `react-hook-form` + `zodResolver` + tipos inferidos?
+- [ ] Tipos são inferidos de Zod (`z.infer<typeof schema>`)?
+- [ ] Middleware segue padrão de auth gate?
+- [ ] Tailwind usa `cn()` e classes, não CSS customizado?
+
+**Ação**: Se desviar, mostre padrão similar no projeto e peça alinhamento.
+
+### 7. Tratamento de Erros e Edge Cases
+
+**Checklist**:
+- [ ] Queries têm tratamento de erro (toast, fallback)?
+- [ ] Mutations invalidam cache após sucesso?
+- [ ] Formulários lidam com loading/error/success?
+- [ ] APIs/Supabase têm try-catch ou error handling?
+- [ ] Estados vazios são tratados (loading, error, empty)?
+- [ ] Sem erros silenciosos ou consoladores vazios?
+
+**Ação**: Exija error handling explícito em mutações/queries.
+
+### 8. Segurança de Refatoração
+
+**Pergunta antes de alterar**:
+- Essa mudança altera comportamento?
+- Afeta código fora deste arquivo?
+- Há testes que cobrem essa lógica?
+- Impacto é claro e documentado?
+
+**Se dúvida**: Pause e pergunte ao autor.
+
+### 9. Código Morto
+
+**Checklist**:
+- [ ] Sem blocos comentados?
+- [ ] Sem variáveis declaradas mas não usadas?
+- [ ] Sem funções/componentes exportados mas não importados?
+- [ ] Sem condições inalcançáveis?
+- [ ] Sem imports de módulos deletados?
+
+**Ação**: Remova sem hesitar.
+
+### 10. Types e Tipagem TypeScript
+
+**Checklist**:
+- [ ] Types são explícitos e não `any`?
+- [ ] Tipos de formulário são inferidos de Zod?
+- [ ] Props de componentes têm interface clara?
+- [ ] Retornos de função têm tipos anotados?
+- [ ] Sem uso de `as` cast desnecessário?
+
+**Ação**: Fortaleça tipagem onde houver `any` ou tipos débeis.
+
+---
+
+## Workflow de Revisão
+
+Siga esta ordem para review rápido e eficiente:
+
+1. **Nomenclatura** (30 seg): Nomes são claros? Evita genéricos?
+2. **Colocation** (20 seg): Arquivo está no lugar certo?
+3. **Imports** (20 seg): Todos usados? Nenhum quebrado?
+4. **Padrão** (30 seg): Segue pattern do projeto?
+5. **Duplicação** (20 seg): Lógica repetida?
+6. **Legibilidade** (30 seg): Código é fácil de ler?
+7. **Erros** (20 seg): Tratamento explícito?
+8. **Código Morto** (10 seg): Comentários? Imports inúteis?
+
+**Tempo total**: ~3 minutos por arquivo pequeno. Escale conforme complexidade.
+
+---
+
+## Padrões Comuns e Verificações Rápidas
+
+### React Query Pattern
+
 ```typescript
-// breeds/zod/breeds-form.zod.ts
-export const breedsFormZod = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  size: z.enum(["PEQUENO", "MÉDIO", "GRANDE"]),
+// ✅ Correto
+const { data, isLoading, error } = useQuery({
+  queryKey: ["breeds"],
+  queryFn: async () => { /* fetch */ },
 });
 
-export type BreedFormValues = z.infer<typeof breedsFormZod>;
+if (isLoading) return <SkeletonLoader />;
+if (error) return <ErrorUI />;
+```
 
-// breeds/components/breed-form.component.tsx
-"use client";
-import { breedsFormZod, type BreedFormValues } from "../zod/breeds-form.zod";
+```typescript
+// ❌ Errado (sem pattern de loading/error)
+const [breeds, setBreeds] = useState([]);
+useEffect(() => {
+  fetch("/api/breeds").then(setBreeds);
+}, []);
+```
 
-const form = useForm<BreedFormValues>({
-  resolver: zodResolver(breedsFormZod),
+**Flag**: Se `useEffect` + `useState` para dados, sugira React Query.
+
+### Zod + React Hook Form
+
+```typescript
+// ✅ Correto
+export const formZod = z.object({
+  name: z.string().min(1, "Campo obrigatório"),
+});
+export type FormValues = z.infer<typeof formZod>;
+
+const form = useForm<FormValues>({
+  resolver: zodResolver(formZod),
 });
 ```
 
-### 7. Styling and Tailwind
-
-**Check**:
-- Use Tailwind classes directly (no custom CSS unless absolutely necessary)
-- Organize long class lists with `clsx` or the project's `cn` utility (from `src/lib/utils.ts`)
-- Responsive classes follow Tailwind conventions (mobile-first: `text-sm md:text-base lg:text-lg`)
-- No hardcoded colors; use theme tokens (primary, destructive, etc.)
-
-**Example**:
 ```typescript
-// ✅ Good
+// ❌ Errado (tipos duplicados)
+type FormValues = { name: string };
+const schema = z.object({ name: z.string() });
+```
+
+**Flag**: Se tipos forem duplicados, use `z.infer<typeof>`.
+
+### Tailwind com `cn()`
+
+```typescript
+// ✅ Correto
 className={cn(
   "flex flex-col gap-4 p-4",
   "md:flex-row md:gap-6",
-  isActive && "bg-primary text-white"
+  isActive && "bg-primary"
 )}
-
-// ❌ Bad
-className="flex flex-col gap-4 p-4 md:flex-row md:gap-6 {isActive && 'bg-blue-500 text-white'}"
 ```
 
-### 8. Code Reuse and DRY
+```typescript
+// ❌ Errado (long unorganized string)
+className="flex flex-col gap-4 p-4 md:flex-row md:gap-6 bg-primary"
+```
 
-**Check**:
-- Repeated logic extracted to utilities or hooks
-- Duplicate component trees consolidated
-- Shared constants in `src/constants/` (e.g. `pathnames.constant.ts`)
-- No copy-paste components; use props and composition
+**Flag**: Se classes forem longas/desorganizadas, organize com `cn()`.
 
-**Red flags**:
-- Same filter logic in two files → extract to `utils/`
-- Identical forms in two routes → extract to a reusable component
-- Hard-coded values repeated → move to constants
+### Componentes vs Primitivas UI
 
-### 9. Dead Code and Imports
+```
+src/components/ui/                    # ✅ shadcn only
+  ├── button.tsx
+  └── dialog.tsx
 
-**Check**:
-- All imports are used; no unused variable declarations
-- No commented-out code blocks
-- **CRITICAL**: `@/hooks/use-mobile` is imported but the hook doesn't exist (check `sidebar.tsx`); flag broken imports
+src/components/                        # ✅ App chrome
+  ├── header.component.tsx
+  └── sidebar.component.tsx
 
-**Current known issues**:
-- `src/hooks/use-mobile.ts` is deleted but `sidebar.tsx` still imports it → remove import or restore hook
+src/app/(main)/breeds/components/     # ✅ Feature components
+  ├── breed-form.component.tsx
+  └── breed-card.component.tsx
+```
 
-### 10. Configuration and Test Setup
+**Flag**: Se componente de feature estiver em `src/components/` (não UI/header/sidebar), mova para feature-local.
 
-**Check vitest.config.ts**:
-- `include` path is currently `src/app/entrar/tests/**/*.test.{ts,tsx}` but tests live at `src/app/auth/tests/`
-- When reviewing, note this mismatch; tests won't run unless CLI specifies path or config is fixed
+### Nomenclatura de Arquivos
 
-**Check eslint.config.mjs**:
-- ESLint 9 flat config with next/core-web-vitals + typescript
-- Ignores `.next`, `out`, `build`
+| Tipo | Padrão | Exemplo |
+|------|--------|---------|
+| Componente | `*.component.tsx` | `breed-form.component.tsx` |
+| Hook | `use-*.ts` | `use-breed-form-submit.ts` |
+| Utilidade | `*-*.utils.ts` | `format-date-to-pt-br.utils.ts` |
+| Tipos | `*.types.ts` | `breed.types.ts` |
+| Zod/Validação | `*.zod.ts` | `breeds-form.zod.ts` |
+| Constantes | `*.constant.ts` | `pathnames.constant.ts` |
+| Primitiva UI | `*.tsx` (no ui/) | `button.tsx` |
 
----
-
-## Review Workflow
-
-When reviewing a file or changeset:
-
-1. **Verify placement**: Is this file in the right directory? Should types be co-located? Is a component in the right folder?
-
-2. **Check naming**: Apply the nomenclature rule strictly. Every identifier should be unambiguous.
-
-3. **Scan for duplicates**: Does this logic exist elsewhere? Can it be extracted?
-
-4. **Verify imports**: 
-   - Are all imports actually used?
-   - Does `@/` path match the filesystem?
-   - No broken imports from deleted files?
-
-5. **Check architecture boundaries**:
-   - Client/server boundary respected?
-   - Data fetching via React Query (not bare fetch)?
-   - Proper separation of concerns?
-
-6. **Validate forms/zod**: Schemas colocated? Types inferred? Validation messages clear?
-
-7. **Assess code quality**:
-   - Is code readable without mental overhead?
-   - Are functions small and focused?
-   - Is error handling explicit?
-   - Are edge cases handled?
-
-8. **Look for dead code**: Commented-out blocks, unused variables, unreachable conditions.
-
-9. **Verify patterns match the project**: Does this follow the pattern in `breeds/` or `auth/`? If not, why?
-
-10. **Safe to refactor?**: If you spot an improvement, ensure it doesn't change behavior. Ask if unsure.
+**Flag**: Se nomes não seguem padrão, padronize.
 
 ---
 
-## Common Issues to Flag
+## Severidade de Issues
 
-| Issue | Severity | Action |
-|-------|----------|--------|
-| Generic naming (e.g. `helper`, `utils`, `data`) | 🔴 Critical | Reject until renamed to be explicit |
-| Broken imports (e.g. missing `@/hooks/use-mobile`) | 🔴 Critical | Remove or restore the import target |
-| Zod schema in page file instead of `zod/` folder | 🟡 Suggestion | Move to co-located `zod/` folder for clarity |
-| Data fetching without React Query | 🔴 Critical | Refactor to use `useQuery` + `useMutation` |
-| Component in wrong folder (feature logic in `src/components/ui/`) | 🔴 Critical | Move to feature-local `components/` or `src/components/` |
-| Unused imports or dead code | 🟡 Suggestion | Remove unless there's a reason to keep |
-| No error handling in forms or queries | 🔴 Critical | Add toast, redirect, or error boundary |
-| Client/server boundary violated | 🔴 Critical | Separate concerns; mark with `"use client"` if needed |
-| Repeated logic across files | 🟡 Suggestion | Extract to `utils/` or shared hook |
-| Hard-coded values instead of constants | 🟡 Suggestion | Move to `src/constants/` or feature-local constants |
-| Class names not using `cn()` utility or Tailwind conventions | 🟡 Suggestion | Refactor for consistency |
+| 🔴 Crítico | Bloqueia merge |
+|----------|---|
+| Nomenclatura genérica (`helper`, `data`, `util`) | Renomear |
+| Imports quebrados (arquivo não existe) | Remover ou restaurar |
+| Sem error handling em queries/mutations | Adicionar |
+| Client/server boundary violado | Refatorar |
+| Feature component em `src/components/` | Mover para colocation |
 
----
+| 🟡 Sugestão | Melhore antes de merge |
+|----------|---|
+| Lógica duplicada | Extrair para utils |
+| Zod schema fora de `zod/` | Mover para colocation |
+| Tipos duplicados (não inferindo Zod) | Usar `z.infer<typeof>` |
+| Tailwind classes desorganizadas | Organizar com `cn()` |
+| Sem edge case handling | Adicionar tratamento |
 
-## Additional Resources
-
-- **Nomenclature Rule**: `.cursor/rules/nomenclaturas.mdc` (applies to all identifiers; clarity is priority)
-- **TSConfig**: `tsconfig.json` with strict mode and `@/*` alias
-- **Tailwind**: `tailwind.config.js` with theme overrides (primary, destructive, not-found keyframes)
-- **Components**: `components.json` references `base-nova` style, RSC-friendly
-- **Supabase Pattern**: `src/lib/supabase/` contains browser and server clients; middleware refreshes session
+| 🟢 Nice-to-Have | Opcional |
+|----------|---|
+| Comentários documentando lógica complexa | Adicionar se ajudar |
+| Refatoração cosmética | Okay, but not required |
+| Nomes ainda mais descritivos | Approve se already clear |
 
 ---
 
-## Quick Checklist for Reviewers
+## Quando Pedir Confirmação
 
-- [ ] Naming is explicit and follows project style (Portuguese for domain/UI, English for code)
-- [ ] File placement matches the colocation pattern (types, zod, utils, components with feature)
-- [ ] No broken imports or dead code
-- [ ] Component responsibility is single and clear
-- [ ] Data flows via React Query (no bare fetch)
-- [ ] Forms use zod + react-hook-form + zodResolver, schemas co-located
-- [ ] Client/server boundaries respected (`"use client"` where needed)
-- [ ] Error handling is explicit (toast, fallback, redirect)
-- [ ] No repeated logic (extract to utils or hooks)
-- [ ] Tailwind classes use `cn()` and follow conventions
-- [ ] All changes align with existing project patterns
+**Sempre peça permissão se**:
+- Alterar comportamento ou lógica funcional
+- Mudança afeta outro módulo/feature
+- Tipagem TypeScript ser enfraquecida
+- Dúvida sobre regra de negócio
+- Performance/impacto unclear
+- Migração de padrão (ex: componente class → functional)
+
+**Seguro mudar sem perguntar**:
+- Renomear variáveis/funções (clareza)
+- Remover código morto
+- Adicionar tipos/tipagem
+- Organizar imports
+- Reformatar Tailwind com `cn()`
+- Extrair função/utilidade pura
 
 ---
 
-## When in Doubt
+## Checklist Rápida
 
-1. **Is this change safe?** (Does it alter behavior? Will tests catch it?)
-   - Yes → proceed with refactoring suggestion
-   - No → ask the author before changing
-2. **Does naming match the pattern?** (Check similar files in `breeds/`, `auth/`, `components/ui/`)
-   - Yes → approve
-   - No → request clarification or rename
-3. **Is placement correct?** (Would someone unfamiliar with the codebase find this file intuitively?)
-   - Yes → approve
-   - No → suggest moving or restructuring
+- [ ] Nomenclatura explícita (sem `helper`, `util`, `data`)?
+- [ ] Arquivo no lugar certo (colocation)?
+- [ ] Todos imports usados? Nenhum quebrado?
+- [ ] Segue padrão do projeto (zod, react-query, tailwind)?
+- [ ] Sem duplicação de lógica?
+- [ ] Legível e simples (não over-engineered)?
+- [ ] Error handling explícito?
+- [ ] Sem código morto (comentários, imports inúteis)?
+- [ ] TypeScript tipado (sem `any`)?
+- [ ] Safe to refactor (ou pedir permissão)?
+
+---
+
+## Referências Rápidas
+
+- **Regra de Nomenclatura**: `.cursor/rules/nomenclaturas.mdc`
+- **Agent de Code Review**: `.cursor/agents/code-review.mdc`
+- **Padrão de Colocation**: Veja `src/app/(main)/breeds/`
+- **TypeScript Config**: `tsconfig.json`
+- **Tailwind Config**: `tailwind.config.js`
+- **Vitest Config**: `vitest.config.ts`
+- **Components Config**: `components.json` (shadcn)
+
+---
+
+## Exemplos Reais de Issues
+
+Veja `examples.md` para 10 exemplos concretos de problemas encontrados e como corrigi-los.
+
+Veja `reference.md` para quick-ref de padrões, red flags e nomes aprovados.

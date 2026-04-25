@@ -1,12 +1,12 @@
-# Code Review Examples
+# Exemplos de Code Review
 
-Este documento fornece exemplos concretos de issues encontradas no projeto e como abordar code review.
+Exemplos reais de problemas encontrados no projeto e como corrigi-los.
 
 ---
 
-## Example 1: Nomenclature Issue
+## 1. Nomenclatura Genérica → Explícita
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
 // utils/util.ts
@@ -15,59 +15,81 @@ export function fmt(date: string): string {
 }
 
 export function getData() {
-  // fetch data from somewhere?
+  // fetch data from where?
+}
+
+// helpers/handler.ts
+export function handle(data: any) {
+  // handle what?
 }
 ```
 
-**Problems**:
-- `fmt` is abbreviated and unclear (format date? format data?)
-- `getData()` is too generic—get what data? from where?
-- Module name `util.ts` doesn't describe purpose
+**Por que está errado**:
+- `fmt` é abreviado e ambíguo (formata data? formata qualquer coisa?)
+- `getData()` é genérico demais (qual dado? de onde?)
+- `handler.ts` não diz o que trata
+- `handle()` não explica qual ação realiza
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
-// utils/date.utils.ts
+// utils/format-date-to-pt-br.utils.ts
 export function formatarDataParaPtBr(date: string): string {
   return new Date(date).toLocaleDateString("pt-BR");
 }
 
-// utils/breed-data.utils.ts
-export function fetchBreedDataFromSupabase(breedId: string) {
-  // fetch breeds data from Supabase
+// utils/fetch-breed-from-supabase.utils.ts
+export async function fetchBreedFromSupabase(breedId: string) {
+  const { data, error } = await supabaseBrowser
+    .from("breeds")
+    .select("*")
+    .eq("id", breedId);
+  
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// breeds/handlers/submit-breed-form.handler.ts
+export async function submitBreedForm(values: BreedFormValues) {
+  // submit logic
 }
 ```
 
-**Why better**:
-- `formatarDataParaPtBr` clearly states the format and locale (Portuguese domain name is OK for utility helper)
-- `fetchBreedDataFromSupabase` explains what data, from where
-- Module names describe purpose
+**Por que está melhor**:
+- Cada função/arquivo tem propósito claro e explícito
+- Nomes respondem: "O que é?", "O que faz?", "Qual dado?"
+- Escalável: novos devs entendem sem ler código
 
 ---
 
-## Example 2: Component Placement Issue
+## 2. Componentes no Lugar Errado → Colocation Correta
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```
 src/components/
-  ├── BreedForm.tsx           ❌ Feature component mixed with UI primitives
-  ├── BreedCard.tsx           ❌ Should be feature-local
+  ├── BreedForm.tsx           ❌ Feature logic misturada com UI
+  ├── BreedCard.tsx           ❌ Deveria estar com a feature
+  ├── BreedList.tsx           ❌ Idem
   └── ui/
-      ├── button.tsx
-      └── input.tsx
+      ├── button.tsx          ✅ Correto (primitiva)
+      └── input.tsx           ✅ Correto (primitiva)
 ```
 
-**Problem**: Feature components (`BreedForm`, `BreedCard`) live in `src/components/` instead of being co-located with their feature.
+**Impacto**:
+- Difícil encontrar código da feature
+- Mistura feature logic com UI primitivas
+- Não escalável para múltiplas features
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```
 src/app/(main)/breeds/
   ├── page.tsx
   ├── components/
-  │   ├── breed-form.component.tsx      ✅ Co-located with feature
-  │   └── breed-card.component.tsx      ✅ Co-located with feature
+  │   ├── breed-list.component.tsx      ✅ Feature components
+  │   ├── breed-form.component.tsx      ✅ Colocados com feature
+  │   └── breed-card.component.tsx      ✅ Idem
   ├── types/
   │   └── breed.types.ts
   ├── zod/
@@ -76,139 +98,179 @@ src/app/(main)/breeds/
       └── classify-breed-size.utils.ts
 
 src/components/
-  ├── ui/                              ✅ Only UI primitives
+  ├── ui/                              ✅ Apenas primitivas
   │   ├── button.tsx
   │   └── input.tsx
-  └── header/                           ✅ App chrome (global concern)
+  └── header/                          ✅ Chrome global
       └── header.component.tsx
 ```
 
-**Why better**: Feature files live next to the feature route. Global UI primitives and app chrome are separate. Easier to find, maintain, and refactor.
+**Por que está melhor**:
+- Feature components vivem com a feature
+- Fácil encontrar tudo relacionado a "breeds"
+- Primitivas UI claramente separadas
+- Escalável: adicione nova feature, siga padrão
 
 ---
 
-## Example 3: Duplicate Logic
+## 3. Lógica Duplicada → Extração para Utils
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
 // auth/components/login.component.tsx
 export function LoginForm() {
+  const validationRules = {
+    email: z.string().email("Email inválido"),
+    password: z.string().min(6, "Mínimo 6 caracteres"),
+  };
+  
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
-      })
-    ),
+    resolver: zodResolver(z.object(validationRules)),
   });
-  return <form>...</form>;
+  
+  return <form>{/* ... */}</form>;
 }
 
 // breeds/components/breed-form.component.tsx
 export function BreedForm() {
+  const validationRules = {
+    email: z.string().email("Email inválido"),           // ❌ Duplicado!
+    password: z.string().min(6, "Mínimo 6 caracteres"), // ❌ Duplicado!
+  };
+  
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
-      })
-    ),
+    resolver: zodResolver(z.object(validationRules)),
   });
-  return <form>...</form>;
+  
+  return <form>{/* ... */}</form>;
 }
 ```
 
-**Problem**: Same form validation logic duplicated. No DRY principle.
+**Por que está errado**:
+- Regras de validação duplicadas
+- Mudança em uma não atualiza outra
+- Inconsistência futura garantida
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
-// src/constants/validation.constant.ts
-export const BASE_FORM_RULES = {
+// src/constants/validation-rules.constant.ts
+export const VALIDATION_RULES = {
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
 };
 
 // auth/zod/login.zod.ts
-export const loginZod = z.object(BASE_FORM_RULES);
+export const loginZod = z.object({
+  ...VALIDATION_RULES,
+});
 
 // breeds/zod/breeds-form.zod.ts
 export const breedsFormZod = z.object({
-  ...BASE_FORM_RULES,
+  ...VALIDATION_RULES,
   breedName: z.string().min(1, "Nome é obrigatório"),
 });
 ```
 
-**Why better**: Shared validation rules in constants. Avoid copy-paste. Easier to update validation globally.
+**Por que está melhor**:
+- Single source of truth
+- Mudança em um lugar = tudo atualizado
+- DRY principle respeitado
+- Mantível e escalável
 
 ---
 
-## Example 4: Missing React Query Usage
+## 4. Fetch Manual → React Query Pattern
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
-// breeds/components/breed-list.component.tsx
+// breeds/page.tsx
 "use client";
 
-export function BreedList() {
+export function BreedListPage() {
   const [breeds, setBreeds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  // ❌ Falta estado de erro!
 
   useEffect(() => {
+    setIsLoading(true);
     fetch("/api/breeds")
       .then((r) => r.json())
-      .then((data) => setBreeds(data));
+      .then((data) => setBreeds(data))
+      .catch((error) => console.error(error));  // ❌ Silencioso!
+      .finally(() => setIsLoading(false));
   }, []);
 
-  return <div>{breeds.map(/* ... */)}</div>;
+  return (
+    <div>
+      {isLoading && <p>Carregando...</p>}
+      {breeds.map(/* ... */)}
+      {/* ❌ Sem estado vazio, sem erro visível */}
+    </div>
+  );
 }
 ```
 
-**Problems**:
-- No error handling
-- No loading state
-- Manual state management instead of React Query
-- No caching or invalidation strategy
+**Problemas**:
+- Sem caching, sem retry automático
+- Erro é silencioso (console.error)
+- Sem invalidação de cache
+- Código manual e repetitivo
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
-// breeds/components/breed-list.component.tsx
+// breeds/page.tsx
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { toast } from "sonner";
 
-export function BreedList() {
+export function BreedListPage() {
   const { data: breeds, isLoading, error } = useQuery({
     queryKey: ["breeds"],
     queryFn: async () => {
-      const { data } = await supabaseBrowser
+      const { data, error } = await supabaseBrowser
         .from("breeds")
-        .select("*");
-      return data;
+        .select("*")
+        .order("name");
+      
+      if (error) throw new Error(error.message);
+      return data || [];
     },
   });
 
-  if (isLoading) return <SkeletonLoader />;
-  if (error) return <ErrorDisplay error={error} />;
+  if (isLoading) return <BreedListSkeleton />;
+  
+  if (error) {
+    toast.error("Erro ao carregar raças");
+    return <ErrorState error={error} />;
+  }
+  
   if (!breeds?.length) return <EmptyState />;
 
-  return <div>{breeds.map(/* ... */)}</div>;
+  return <BreedGrid breeds={breeds} />;
 }
 ```
 
-**Why better**: React Query handles caching, stale data, retries. Error and loading states explicit. Easier to test and reason about.
+**Por que está melhor**:
+- React Query handle caching, retry, background refetch
+- Erros explícitos (toast visível)
+- Loading, error, empty states tratados
+- Escalável com `useQuery` padrão
+- Invalidação fácil com `useQueryClient()`
 
 ---
 
-## Example 5: Broken Import
+## 5. Importação Quebrada → Restauração ou Remoção
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
 // components/sidebar.tsx
-import { useMobile } from "@/hooks/use-mobile";  ❌ File doesn't exist!
+import { useMobile } from "@/hooks/use-mobile";  // ❌ Não existe!
 
 export function Sidebar() {
   const isMobile = useMobile();
@@ -216,63 +278,76 @@ export function Sidebar() {
 }
 ```
 
-**Problem**: `@/hooks/use-mobile` hook was deleted but import still exists. Build may fail at runtime.
+**Resultado**: Build falha ou runtime error.
 
-### ✅ Good (Refactored)
+### ✅ Solução A: Restaurar o Hook
 
-**Option A: Restore the hook**
 ```typescript
 // src/hooks/use-mobile.ts
-import { useMedia } from "some-library"; // or implement custom logic
+import { useMediaQuery } from "./use-media-query";
 
 export function useMobile() {
-  return useMedia("(max-width: 768px)");
+  return useMediaQuery("(max-width: 768px)");
 }
 ```
 
-**Option B: Remove the import**
+### ✅ Solução B: Remover o Import
+
 ```typescript
 // components/sidebar.tsx
 export function Sidebar() {
-  // Remove useMobile call if not needed
-  // Or inline responsive logic with Tailwind classes
+  // Se useMobile não é necessário, remova o import
+  // Ou use Tailwind hidden/flex utilities
+  return (
+    <nav className="hidden md:flex">
+      {/* ... */}
+    </nav>
+  );
 }
 ```
 
-**Why better**: No broken imports. Either restore the hook or remove the import. Keeps the codebase valid.
+**Por que está melhor**:
+- Sem imports quebrados
+- Build/runtime funciona
+- Código válido e executável
 
 ---
 
-## Example 6: Naming Booleans
+## 6. Nomenclatura de Booleans Confusa → Explícita
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
-const [open, setOpen] = useState(false);
-const [loading, setLoading] = useState(false);
-const [valid, setValid] = useState(true);
+const [open, setOpen] = useState(false);        // ✅ Abrir o quê?
+const [loading, setLoading] = useState(false);  // ✅ Carregando o quê?
+const [valid, setValid] = useState(true);       // ✅ Válido o quê?
+const [active, setActive] = useState(false);    // ✅ Ativo o quê?
 ```
 
-**Problem**: Unclear what is open, loading, or valid. Context-dependent and ambiguous.
+**Impacto**: Ambíguo quando lendo código fora de contexto.
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
-const [isDialogOpen, setIsDialogOpen] = useState(false);
+const [isBreedFormDialogOpen, setIsBreedFormDialogOpen] = useState(false);
 const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 const [isFormDataValid, setIsFormDataValid] = useState(true);
+const [isUserAuthenticatedAndOnAuthPage, setIsUserAuthenticatedAndOnAuthPage] = useState(false);
 
-// Or use React Hook Form's built-in states:
+// Ou use React Hook Form built-in states:
 const { isSubmitting, isValid } = useFormState(form);
 ```
 
-**Why better**: Booleans clearly state what they represent. Verbose is better than ambiguous. Aligns with project style.
+**Por que está melhor**:
+- Cada boolean deixa claro o que controla
+- Alinha com style verbose do projeto
+- Legível em qualquer contexto
 
 ---
 
-## Example 7: Error Handling in Forms
+## 7. Sem Tratamento de Erro → Error Handling Explícito
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
 // breeds/components/breed-form.component.tsx
@@ -281,20 +356,24 @@ const onSubmit = async (data: BreedFormValues) => {
     .from("breeds")
     .insert([data]);
   
-  // No error handling!
-  router.push("/breeds");
+  // ❌ Sem tratamento de erro!
+  router.push("/breeds");  // Redireciona sempre
 };
 ```
 
-**Problem**: If mutation fails, user gets no feedback. Redirects anyway.
+**Resultado**: Usuário não sabe se funcionou ou falhou.
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
 // breeds/components/breed-form.component.tsx
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+const queryClient = useQueryClient();
+const router = useRouter();
 
 const breedMutation = useMutation({
   mutationFn: async (data: BreedFormValues) => {
@@ -312,6 +391,7 @@ const breedMutation = useMutation({
   },
   onError: (error) => {
     toast.error(`Erro: ${error.message}`);
+    console.error("Mutation error:", error);
   },
 });
 
@@ -320,35 +400,17 @@ const onSubmit = async (data: BreedFormValues) => {
 };
 ```
 
-**Why better**: Error is caught and displayed to user. Success clears stale queries. UX is clear.
+**Por que está melhor**:
+- Erro é capturado e mostrado ao usuário
+- Cache é invalidado após sucesso
+- Loading e error states gerenciados
+- UX transparente
 
 ---
 
-## Example 8: Type Inference from Zod
+## 8. Tipos Duplicados → Inferência de Zod
 
-### ❌ Bad (Reported)
-
-```typescript
-// breeds/zod/breeds-form.zod.ts
-export const breedsFormZod = z.object({
-  name: z.string(),
-  size: z.enum(["SMALL", "MEDIUM", "LARGE"]),
-});
-
-// breeds/components/breed-form.component.tsx
-type BreedFormValues = {
-  name: string;
-  size: "SMALL" | "MEDIUM" | "LARGE";
-};  // ❌ Duplicated from Zod!
-
-const form = useForm<BreedFormValues>({
-  resolver: zodResolver(breedsFormZod),
-});
-```
-
-**Problem**: Type definition duplicated from Zod schema. Any schema change requires manual type update.
-
-### ✅ Good (Refactored)
+### ❌ Problema
 
 ```typescript
 // breeds/zod/breeds-form.zod.ts
@@ -357,6 +419,30 @@ export const breedsFormZod = z.object({
   size: z.enum(["PEQUENO", "MÉDIO", "GRANDE"]),
 });
 
+// breeds/types/breed-form.types.ts
+export type BreedFormValues = {
+  name: string;
+  size: "PEQUENO" | "MÉDIO" | "GRANDE";
+};  // ❌ Duplicado do zod!
+
+// breeds/components/breed-form.component.tsx
+const form = useForm<BreedFormValues>({
+  resolver: zodResolver(breedsFormZod),
+});
+```
+
+**Problema**: Mudança em um place não atualiza o outro.
+
+### ✅ Solução
+
+```typescript
+// breeds/zod/breeds-form.zod.ts
+export const breedsFormZod = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  size: z.enum(["PEQUENO", "MÉDIO", "GRANDE"]),
+});
+
+// ✅ Tipo inferido = single source of truth
 export type BreedFormValues = z.infer<typeof breedsFormZod>;
 
 // breeds/components/breed-form.component.tsx
@@ -367,35 +453,46 @@ const form = useForm<BreedFormValues>({
 });
 ```
 
-**Why better**: Type is inferred from schema. Single source of truth. Schema change auto-updates type. Less duplication.
+**Por que está melhor**:
+- Type é derivado do schema automaticamente
+- Mudança no schema = tipo atualizado
+- Single source of truth
+- Menos código, menos erros
 
 ---
 
-## Example 9: Tailwind Class Organization
+## 9. Classes Tailwind Desorganizadas → Organização com `cn()`
 
-### ❌ Bad (Reported)
+### ❌ Problema
 
 ```typescript
-<div className="flex flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6 lg:flex-row lg:gap-8 lg:p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
+<div className="flex flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6 lg:flex-row lg:gap-8 lg:p-8 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow bg-white dark:bg-gray-900">
   {/* Content */}
 </div>
 ```
 
-**Problem**: Long, hard-to-read class string. Mixes concerns. Inconsistent spacing logic.
+**Problema**:
+- String longa e ilegível
+- Difícil de manter
+- Ordem arbitrária
+- Confuso
 
-### ✅ Good (Refactored)
+### ✅ Solução
 
 ```typescript
 import { cn } from "@/lib/utils";
 
 <div
   className={cn(
-    // Layout
+    // Layout base
     "flex flex-col gap-4 p-4",
+    // Responsive layout
     "md:flex-row md:gap-6 md:p-6",
     "lg:gap-8 lg:p-8",
-    // Styling
+    // Appearance
     "rounded-lg border border-gray-200",
+    "bg-white dark:bg-gray-900",
+    // Interactivity
     "shadow-lg hover:shadow-xl transition-shadow"
   )}
 >
@@ -403,48 +500,60 @@ import { cn } from "@/lib/utils";
 </div>
 ```
 
-**Why better**: Readable. Responsive logic grouped. Uses `cn()` utility for consistency. Easier to maintain.
+**Por que está melhor**:
+- Legível e organizado
+- Responsive logic agrupada
+- Appearance separada
+- Fácil manutenção
+- Consistente com projeto
 
 ---
 
-## Example 10: Configuration Issue (Vitest)
+## 10. Configuração Desatualizada → Ajuste
 
-### Issue (Reported in current project)
-
-```typescript
-// vitest.config.ts
-include: ["src/app/entrar/tests/**/*.test.{ts,tsx}"]  // ❌ Old path!
-```
-
-But tests live at:
-```
-src/app/auth/tests/  // ✅ Current path (route renamed)
-```
-
-**Problem**: `npm test` won't discover tests because path is stale.
-
-### Fix
+### ❌ Problema
 
 ```typescript
 // vitest.config.ts
-include: ["src/app/auth/tests/**/*.test.{ts,tsx}"]  // ✅ Correct path
+export default defineConfig({
+  // ...
+  include: ["src/app/entrar/tests/**/*.test.{ts,tsx}"]  // ❌ Rota antiga!
+});
+
+// Mas testes estão em:
+// src/app/auth/tests/  ✅ Nova rota
 ```
 
-**Why**: Tests are discoverable and run as expected.
+**Resultado**: `npm test` não encontra testes.
+
+### ✅ Solução
+
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  // ...
+  include: ["src/app/auth/tests/**/*.test.{ts,tsx}"]  // ✅ Rota correta
+});
+```
+
+**Por que está melhor**:
+- Testes são descobertos
+- CI/CD funciona
+- Não há surpresas em produção
 
 ---
 
-## Summary: What to Look For
+## Resumo: O Que Procurar
 
-1. **Naming**: Is it explicit? Does it say what it does?
-2. **Placement**: Is the file in the right folder? Can someone find it?
-3. **Duplication**: Is this logic repeated elsewhere?
-4. **Imports**: Are all imports used? Do they exist?
-5. **Patterns**: Does this follow the project's established patterns (breeds, auth)?
-6. **Data flow**: Does it use React Query? Is error handling explicit?
-7. **Types**: Are they inferred from Zod? Single source of truth?
-8. **Tailwind**: Are classes organized with `cn()`? Do they follow conventions?
-9. **Dead code**: Is there commented-out code? Unused variables?
-10. **Configuration**: Are tools configured correctly (Vitest paths, ESLint)?
+1. **Nomenclatura**: Explícita ou genérica?
+2. **Colocation**: Arquivo no lugar certo?
+3. **Duplicação**: Lógica repetida?
+4. **Padrão**: Segue padrão do projeto?
+5. **Imports**: Válidos e usados?
+6. **Legibilidade**: Fácil de entender?
+7. **Erros**: Tratamento explícito?
+8. **Tipos**: Inferidos de Zod?
+9. **Tailwind**: Organizado com `cn()`?
+10. **Config**: Atualizada e correta?
 
-When in doubt, check existing files in `breeds/` or `auth/` for the established pattern.
+Quando encontrar qualquer um desses padrões, aplique a solução correspondente.
