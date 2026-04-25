@@ -4,6 +4,106 @@ Exemplos reais de problemas encontrados no projeto e como corrigi-los.
 
 ---
 
+## 0. Violação de SOLID → Aplicação Correta
+
+### ❌ Problema: Múltiplas Responsabilidades (Violação de S)
+
+```typescript
+// breeds/components/breed-list.component.tsx
+export function BreedList() {
+  // ❌ Responsabilidades misturadas:
+  // 1. Buscar dados do Supabase
+  // 2. Filtrar dados
+  // 3. Ordenar dados
+  // 4. Renderizar lista
+  // 5. Lidar com paginação
+  // 6. Cache em estado local
+  
+  const [breeds, setBreeds] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [sorted, setSorted] = useState([]);
+  const [page, setPage] = useState(1);
+  
+  useEffect(() => {
+    fetch("/api/breeds")
+      .then(r => r.json())
+      .then(data => {
+        setBreeds(data);
+        // Filtrar aqui
+        // Ordenar aqui
+        // Paginar aqui
+        // Tudo misturado!
+      });
+  }, [page]);
+  
+  return <div>{/* Renderiza tudo inline */}</div>;
+}
+```
+
+**Problema**: Uma responsabilidade = múltiplas tarefas. Difícil de testar, manter, evoluir.
+
+### ✅ Solução: Single Responsibility Aplicado
+
+```typescript
+// breeds/hooks/use-breed-list.ts (Responsabilidade: buscar + filtrar)
+export function useBreedList(page: number) {
+  return useQuery({
+    queryKey: ["breeds", page],
+    queryFn: async () => {
+      const { data } = await supabaseBrowser
+        .from("breeds")
+        .select("*")
+        .range((page - 1) * 10, page * 10 - 1);
+      return data || [];
+    },
+  });
+}
+
+// breeds/utils/filter-and-sort-breeds.utils.ts (Responsabilidade: filtro + ordenação)
+export function filterAndSortBreeds(breeds: Breed[], filter: string, sortBy: "name" | "size") {
+  return breeds
+    .filter(b => b.name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
+}
+
+// breeds/components/breed-pagination.component.tsx (Responsabilidade: controlar página)
+export function BreedPagination({ page, onPageChange }) {
+  return (
+    <div>
+      <button onClick={() => onPageChange(page - 1)}>Anterior</button>
+      <span>{page}</span>
+      <button onClick={() => onPageChange(page + 1)}>Próximo</button>
+    </div>
+  );
+}
+
+// breeds/components/breed-list.component.tsx (Responsabilidade: APENAS renderizar)
+export function BreedList({ page, onPageChange, filter, sortBy, onFilterChange, onSortChange }) {
+  const { data: breeds } = useBreedList(page);
+  const filtered = filterAndSortBreeds(breeds || [], filter, sortBy);
+  
+  return (
+    <div>
+      <input onChange={e => onFilterChange(e.target.value)} placeholder="Filtrar..." />
+      <select onChange={e => onSortChange(e.target.value)}>
+        <option value="name">Por Nome</option>
+        <option value="size">Por Tamanho</option>
+      </select>
+      <ul>{filtered.map(b => <li key={b.id}>{b.name}</li>)}</ul>
+      <BreedPagination page={page} onPageChange={onPageChange} />
+    </div>
+  );
+}
+```
+
+**Por que está melhor**:
+- Cada função/componente tem UMA responsabilidade
+- Fácil de testar cada parte
+- Fácil de manter e evoluir
+- Reutilizável
+
+---
+
 ## 1. Nomenclatura Genérica → Explícita
 
 ### ❌ Problema
@@ -62,7 +162,7 @@ export async function submitBreedForm(values: BreedFormValues) {
 
 ---
 
-## 2. Componentes no Lugar Errado → Colocation Correta
+## 1. Nomenclatura Genérica → Explícita
 
 ### ❌ Problema
 
@@ -543,17 +643,97 @@ export default defineConfig({
 
 ---
 
+## 11. Performance Ruim → Otimização Obrigatória
+
+### ❌ Problema: N+1 Queries + Loops Ineficientes
+
+```typescript
+// breeds/components/breed-list.component.tsx
+export function BreedList() {
+  const [breeds, setBreeds] = useState([]);
+  
+  useEffect(() => {
+    // ❌ Fetch lista
+    fetch("/api/breeds")
+      .then(r => r.json())
+      .then(data => {
+        setBreeds(data);
+        
+        // ❌ Para CADA raça, faz um fetch! N+1 queries!
+        data.forEach(breed => {
+          fetch(`/api/breed-stats/${breed.id}`)
+            .then(r => r.json())
+            .then(stats => {
+              // Atualiza estado para cada raça (causa múltiplos re-renders)
+              setBreeds(prev => [...prev.map(b => 
+                b.id === breed.id ? { ...b, stats } : b
+              )]);
+            });
+        });
+      });
+  }, []);
+  
+  return <div>{breeds.map(b => <p>{b.name} - {b.stats?.count}</p>)}</div>;
+}
+```
+
+**Problemas**:
+- N+1 queries (1 lista + N stats)
+- Múltiplos re-renders (um por raça)
+- Performance péssima em listas grandes
+- Código confuso e ineficiente
+
+### ✅ Solução: Fetch Único + Render Eficiente
+
+```typescript
+// breeds/components/breed-list.component.tsx
+export function BreedList() {
+  // ❌ Fetch único que retorna TUDO de uma vez
+  const { data: breedsWithStats } = useQuery({
+    queryKey: ["breeds-with-stats"],
+    queryFn: async () => {
+      // Backend retorna lista + stats em uma única query
+      const { data } = await supabaseBrowser
+        .from("breeds")
+        .select("*, stats:breed_stats(count)"); // SELECT com join
+      return data;
+    },
+  });
+  
+  // ✅ Render simples e linear
+  return (
+    <ul>
+      {breedsWithStats?.map(breed => (
+        <li key={breed.id}>
+          {breed.name} - {breed.stats[0]?.count || 0}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Por que está melhor**:
+- ✅ Uma query única, não N+1
+- ✅ Um render, não múltiplos
+- ✅ Performance 10x melhor
+- ✅ Código simples e claro
+- ✅ Escalável para listas gigantes
+
+---
+
 ## Resumo: O Que Procurar
 
-1. **Nomenclatura**: Explícita ou genérica?
-2. **Colocation**: Arquivo no lugar certo?
-3. **Duplicação**: Lógica repetida?
-4. **Padrão**: Segue padrão do projeto?
-5. **Imports**: Válidos e usados?
-6. **Legibilidade**: Fácil de entender?
-7. **Erros**: Tratamento explícito?
-8. **Tipos**: Inferidos de Zod?
-9. **Tailwind**: Organizado com `cn()`?
-10. **Config**: Atualizada e correta?
+1. **SOLID**: Violações? Múltiplas responsabilidades?
+2. **Performance**: N+1 queries? Loops ineficientes? Renders desnecessários?
+3. **Nomenclatura**: Explícita ou genérica?
+4. **Colocation**: Arquivo no lugar certo?
+5. **Duplicação**: Lógica repetida?
+6. **Padrão**: Segue padrão do projeto?
+7. **Imports**: Válidos e usados?
+8. **Legibilidade**: Fácil de entender?
+9. **Erros**: Tratamento explícito?
+10. **Tipos**: Inferidos de Zod?
+11. **Tailwind**: Organizado com `cn()`?
 
-Quando encontrar qualquer um desses padrões, aplique a solução correspondente.
+Quando encontrar qualquer um desses padrões, aplique a solução correspondente. **Se SOLID, performance ou legibilidade falharem = REJEITE.**

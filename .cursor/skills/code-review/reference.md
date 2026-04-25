@@ -1,6 +1,24 @@
 # Referência Rápida: Code Review
 
-Checklists, padrões e red flags para review rápido.
+Checklists, padrões e red flags para review rápido e rejeição de código ruim.
+
+---
+
+## ⚠️ Rejeição Automática
+
+Se QUALQUER um desses for verdadeiro, **REJEITE SEM NEGOCIAÇÃO**:
+
+- ❌ Viola SOLID (múltiplas responsabilidades, baixa coesão, etc)
+- ❌ Código confuso ou desnecessariamente complexo
+- ❌ Performance ruim (N+1 queries, loops ineficientes, renders desnecessários)
+- ❌ Redundância evitável
+- ❌ Manutenibilidade sacrificada
+- ❌ Nomenclatura genérica
+- ❌ Imports quebrados
+- ❌ Sem error handling em operações críticas
+- ❌ Lógica não-linear ou com "tricks" desnecessários
+
+**Nenhuma exceção. Sem discussão.**
 
 ---
 
@@ -8,16 +26,30 @@ Checklists, padrões e red flags para review rápido.
 
 Copie e use para cada arquivo:
 
-- [ ] **Nomenclatura**: Nomes explícitos? Sem `helper`, `util`, `data`, `handler`, `component`?
-- [ ] **Colocation**: Arquivo está no lugar certo?
-- [ ] **Imports**: Todos usados? Nenhum quebrado?
-- [ ] **Padrão**: Segue colocation como `breeds/` ou `auth/`?
-- [ ] **React Query**: Queries usam `useQuery`? Mutations usam `useMutation` + invalidate?
-- [ ] **Zod**: Schemas em `zod/`? Tipos inferidos com `z.infer<typeof>`?
-- [ ] **Erros**: Error handling explícito (toast, fallback)?
-- [ ] **Tailwind**: Classes organizadas com `cn()`?
-- [ ] **Duplicação**: Lógica não aparece em dois arquivos?
-- [ ] **Código Morto**: Sem comentários, imports inúteis, variáveis não usadas?
+1. **SOLID** (1 min):
+   - [ ] Responsabilidade única?
+   - [ ] Aberto para extensão, fechado para modificação?
+   - [ ] Sem acoplamento forte?
+   - [ ] Se não, REJEITE
+
+2. **Performance** (30 seg):
+   - [ ] Sem N+1 queries?
+   - [ ] Loops otimizados?
+   - [ ] Renders minimizados?
+   - [ ] Se não, REJEITE
+
+3. **Qualidade**:
+   - [ ] Nomenclatura explícita?
+   - [ ] Colocation correta?
+   - [ ] Imports válidos e usados?
+   - [ ] Padrão do projeto?
+   - [ ] Duplicação?
+   - [ ] Legibilidade?
+   - [ ] Erros tratados?
+   - [ ] Código morto?
+   - [ ] TypeScript tipado?
+
+**Se crítico falhar = REJEITE.**
 
 ---
 
@@ -39,6 +71,37 @@ Copie e use para cada arquivo:
 | **Context** | `src/context/` | `theme.context.ts` |
 | **Provider** | `src/providers/` | `query-client.provider.tsx` |
 | **Teste** | Co-located ou `src/app/auth/tests/` | Feature test files |
+
+---
+
+## Red Flags: SOLID Violations
+
+| Erro | Problema | Solução |
+|------|----------|---------|
+| Componente com 300+ linhas | Múltiplas responsabilidades | Quebrar em componentes menores |
+| Função fazendo fetch + filtro + ordenação + render | Tudo em um | Separar em hooks/utils |
+| Props gigante com 20+ campos | Interface genérica | Segregar em múltiplas interfaces |
+| Acoplamento forte (import de implementação) | Quebra com mudanças | Depender de abstração (interface) |
+| Classe pai com 10 métodos, filho usa 2 | Liskov violation | Redesenhar hierarquia |
+| Componente com 5 useState diferentes | Múltiplas responsabilidades | Extrair em custom hook |
+
+**Ação**: Se encontrar, REJEITE e solicite refatoração.
+
+---
+
+## Red Flags: Performance
+
+| Erro | Impacto | Solução |
+|------|--------|---------|
+| `fetch()` em loop para cada item | N+1 queries | Um fetch único ou batch |
+| `setState()` em loop | Múltiplos re-renders | Usar uma setState com array |
+| `useEffect()` sem dependencies | Infinito loop ou executa sempre | Adicionar array correto |
+| Componente sem `useMemo` / `useCallback` | Re-renders desnecessários | Memoizar quando apropriado |
+| Query sem select específico (SELECT *) | Banda desnecessária | Selecionar apenas colunas usadas |
+| Sem paginação em lista grande | Carrega 10mil items | Paginar ou virtualizar |
+| Validação síncrona em loop | Bloqueia UI | Fazer async ou em worker |
+
+**Red flag**: Se algo é 50% mais lento ou mais complexo que deveria = REJEITE.
 
 ---
 
@@ -273,16 +336,18 @@ Aprove mas sugira:
 
 ## Velocity Tips: Acelere Reviews
 
-1. **Nomenclatura** (30 seg): Nomes claros?
-2. **Colocation** (20 seg): Lugar certo?
-3. **Imports** (20 seg): Válidos e usados?
-4. **Padrão** (30 seg): Segue projeto?
-5. **Duplicação** (20 seg): Lógica repetida?
-6. **Legibilidade** (30 seg): Simples e claro?
-7. **Erros** (20 seg): Tratamento explícito?
-8. **Código Morto** (10 seg): Limpo?
+1. **SOLID & Qualidade** (1 min): Viola SOLID? Confuso? Redundante? Se sim, REJEITE.
+2. **Performance** (30 seg): N+1? Loops ineficientes? Se sim, REJEITE.
+3. **Nomenclatura** (30 seg): Nomes claros?
+4. **Colocation** (20 seg): Lugar certo?
+5. **Imports** (20 seg): Válidos e usados?
+6. **Padrão** (30 seg): Segue projeto?
+7. **Duplicação** (20 seg): Lógica repetida?
+8. **Legibilidade** (30 seg): Simples e claro? Sem complexidade desnecessária?
+9. **Erros** (20 seg): Tratamento explícito?
+10. **Código Morto** (10 seg): Limpo?
 
-**Total**: ~3 minutos por arquivo pequeno.
+**Total**: 3-5 minutos por arquivo. **Se crítico falhar = REJEITE imediatamente.**
 
 ---
 

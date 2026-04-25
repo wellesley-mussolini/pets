@@ -7,11 +7,68 @@ description: Revisa e padroniza código de qualquer parte do projeto (frontend, 
 
 Guia completo e escalável para revisar **qualquer código** do projeto **pets** (Next.js 16, React 19, TypeScript, Supabase, React Query, Tailwind CSS).
 
-Revise **arquivo por arquivo e módulo por módulo**, identificando desvios de padrão, duplicações, baixa legibilidade, nomenclaturas ruins, código morto, e estruturas mal organizadas. Mantenha o código **limpo, escalável, reutilizável, bem escrito, bem indentado e alinhado com padrões existentes**.
+Revise **arquivo por arquivo e módulo por módulo**, rejeitando **CÓDIGO MAL ESCRITO**, duplicações, baixa legibilidade, nomenclaturas ruins, código morto, estruturas mal organizadas e qualquer coisa que viole SOLID. 
+
+Mantenha o código **limpo, bem escrito, legível, escalável, reutilizável, performático e alinhado com padrões existentes**. **Código confuso, redundante, desnecessariamente complexo ou ineficiente é PROIBIDO.**
 
 ---
 
-## Princípio Fundamental: Nomenclatura Clara
+## ⛔ REGRA OURO: Código Mal Escrito É Rejeição Automática
+
+**Nenhuma exceção. Sem discussão.**
+
+Você deve rejeitar IMEDIATAMENTE:
+
+- ❌ Código confuso ou desnecessariamente complexo (mesmo que "funcione")
+- ❌ Redundância evitável (código repetido, lógica duplicada, variáveis inúteis)
+- ❌ Performance ruim (loops ineficientes, renders desnecessários, operações N+1)
+- ❌ Violação de SOLID (múltiplas responsabilidades, baixa coesão)
+- ❌ Falta de legibilidade (nomes ruins, lógica não-linear, "tricks" desnecessários)
+- ❌ Manutenibilidade sacrificada (difícil de debugar, estender, evoluir)
+- ❌ Falta de escalabilidade (não cresce com o projeto)
+- ❌ Lógica obsoleta ou contraditória (código sem propósito claro)
+
+**Sempre exija**:
+- ✅ Máxima legibilidade
+- ✅ Clareza de propósito
+- ✅ Reutilização e DRY
+- ✅ Performance otimizada
+- ✅ SOLID aplicado rigorosamente
+- ✅ Sem confusão, sem redundância, sem complexidade desnecessária
+- ✅ Bem feito, escalável e mantível
+
+---
+
+## Princípio Fundamental: Qualidade e SOLID são Obrigatórios
+
+**Código bem escrito não é negociável.**
+
+Todo código deve:
+
+1. **Ser legível**: Um novo dev entende em menos de 2 minutos sem ler implementação
+2. **Ter propósito claro**: Sabe-se exatamente por que existe e o que resolve
+3. **Seguir SOLID**:
+   - **S (Single Responsibility)**: Uma função/classe = uma responsabilidade única
+   - **O (Open/Closed)**: Aberto para extensão, fechado para modificação
+   - **L (Liskov Substitution)**: Subtipos substituem pai sem quebrar
+   - **I (Interface Segregation)**: Muitas interfaces específicas, não uma genérica
+   - **D (Dependency Inversion)**: Dependa de abstrações, não implementações
+4. **Ser reutilizável**: Sem duplicação, DRY principle aplicado
+5. **Ser performático**: Sem operações ineficientes, loops ótimos, renders mínimos
+6. **Ser escalável**: Crescerá com o projeto sem virar spaghetti code
+7. **Ser mantível**: Fácil debugar, estender, evoluir
+
+**❌ REJEITAR SEM HESITAR**:
+- Código confuso (mesmo que funcione)
+- Redundância evitável
+- Complexidade desnecessária
+- Performance ruim
+- Violação de SOLID
+- Manutenibilidade sacrificada
+
+---
+
+## Nomenclatura Clara
 
 **Referência obrigatória**: `.cursor/rules/nomenclaturas.mdc`
 
@@ -134,7 +191,38 @@ src/
 
 **Ação**: Se encontrar duplicação, extraia para utilidade ou hook compartilhado.
 
-### 4. Legibilidade e Complexidade
+### 4. SOLID e Qualidade Obrigatória
+
+**SOLID não é sugestão, é OBRIGATÓRIO. Violação = rejeição.**
+
+**Single Responsibility (S)**:
+- [ ] Função faz UMA coisa? 
+- [ ] Classe tem UMA razão para mudar?
+- [ ] Componente tem UMA responsabilidade?
+- [ ] Se responder "não", refatore imediatamente
+
+**Open/Closed (O)**:
+- [ ] Novo comportamento = estender, não modificar existente?
+- [ ] Há duplicação que deveria ser abstração?
+- [ ] Composition over inheritance?
+
+**Liskov Substitution (L)**:
+- [ ] Subtipos são substituíveis sem quebrar?
+- [ ] Contrato é respeitado?
+
+**Interface Segregation (I)**:
+- [ ] Props/parameters são específicos, não genéricos?
+- [ ] Sem "super props" gigantes?
+- [ ] Cliente usa tudo que recebe?
+
+**Dependency Inversion (D)**:
+- [ ] Depende de abstrações (interfaces), não implementações?
+- [ ] Sem acoplamento forte?
+- [ ] Inversão de controle aplicada?
+
+**Ação**: Se violar SOLID, rejeite sem negociação.
+
+### 5. Legibilidade e Complexidade
 
 **Checklist**:
 - [ ] Funções são pequenas e focadas em uma responsabilidade?
@@ -145,7 +233,20 @@ src/
 
 **Ação**: Refatore para simplificar sem alterar comportamento.
 
-### 5. Importações e Dependências
+### 5. Legibilidade e Complexidade
+
+**Checklist**:
+- [ ] Funções são pequenas e focadas em uma responsabilidade?
+- [ ] Nível de indentação é raso (≤ 3 níveis)?
+- [ ] Lógica condicional é clara, sem nesting profundo?
+- [ ] Variáveis temporárias têm nomes explícitos?
+- [ ] Blocos de código longos podem ser extraídos em funções?
+- [ ] **O mesmo resultado é atingido com menos linhas e maior clareza?** (OBRIGATÓRIO)
+- [ ] Não há complexidade desnecessária?
+
+**Ação**: Refatore para simplificar sem alterar comportamento. Código confuso = rejeição.
+
+### 6. Importações e Dependências
 
 **Checklist**:
 - [ ] Todas importações são usadas?
@@ -156,7 +257,19 @@ src/
 
 **Ação**: Remova imports não usados. Avise sobre imports quebrados.
 
-### 6. Alinhamento com Padrões Existentes
+### 6. Importações e Dependências
+
+**Checklist**:
+- [ ] Todas importações são usadas?
+- [ ] Caminhos `@/` existem (sem quebrados)?
+- [ ] Não há imports circulares?
+- [ ] Ordem de imports é consistente (ou usa sort automático)?
+- [ ] Sem dead code ou imports de arquivos deletados?
+- [ ] Dependency inversion: depende de abstrações, não implementações?
+
+**Ação**: Remova imports não usados. Avise sobre imports quebrados.
+
+### 7. Alinhamento com Padrões Existentes
 
 **Checklist**:
 - [ ] Segue o padrão de colocation como `breeds/` e `auth/`?
@@ -169,7 +282,7 @@ src/
 
 **Ação**: Se desviar, mostre padrão similar no projeto e peça alinhamento.
 
-### 7. Tratamento de Erros e Edge Cases
+### 8. Tratamento de Erros e Edge Cases
 
 **Checklist**:
 - [ ] Queries têm tratamento de erro (toast, fallback)?
@@ -181,7 +294,7 @@ src/
 
 **Ação**: Exija error handling explícito em mutações/queries.
 
-### 8. Segurança de Refatoração
+### 9. Segurança de Refatoração
 
 **Pergunta antes de alterar**:
 - Essa mudança altera comportamento?
@@ -213,22 +326,37 @@ src/
 
 **Ação**: Fortaleça tipagem onde houver `any` ou tipos débeis.
 
+### 11. Performance e Eficiência
+
+**Obrigatório verificar**:
+- [ ] Loops desnecessários? Há forma mais eficiente?
+- [ ] Renders/re-renders minimizados? Usar `useMemo`, `useCallback` quando necessário?
+- [ ] Queries N+1 (fetching em loop)? Otimize com batch/single query.
+- [ ] Operações síncronas bloqueantes? Use async quando apropriado.
+- [ ] DOM sendo manipulado ineficientemente? Optimize seletores/eventos.
+- [ ] Bundlesize desnecessário? Remova dependências não usadas.
+- [ ] Código executando mais vezes do que deveria?
+
+**Red flag**: Se algo pode ser 50% mais rápido ou 20% mais curto, **REJEITE**. Performance é obrigatória.
+
 ---
 
 ## Workflow de Revisão
 
 Siga esta ordem para review rápido e eficiente:
 
-1. **Nomenclatura** (30 seg): Nomes são claros? Evita genéricos?
-2. **Colocation** (20 seg): Arquivo está no lugar certo?
-3. **Imports** (20 seg): Todos usados? Nenhum quebrado?
-4. **Padrão** (30 seg): Segue pattern do projeto?
-5. **Duplicação** (20 seg): Lógica repetida?
-6. **Legibilidade** (30 seg): Código é fácil de ler?
-7. **Erros** (20 seg): Tratamento explícito?
-8. **Código Morto** (10 seg): Comentários? Imports inúteis?
+1. **Qualidade e SOLID** (1 min): Viola SOLID? É mal escrito? Confuso? Redundante? Se sim, REJEITE.
+2. **Performance** (30 seg): Loops ineficientes? Renders desnecessários? Operações N+1? Se sim, REJEITE.
+3. **Nomenclatura** (30 seg): Nomes são claros? Evita genéricos?
+4. **Colocation** (20 seg): Arquivo está no lugar certo?
+5. **Imports** (20 seg): Todos usados? Nenhum quebrado?
+6. **Padrão** (30 seg): Segue pattern do projeto?
+7. **Duplicação** (20 seg): Lógica repetida?
+8. **Legibilidade** (30 seg): Código é fácil de ler? Sem complexidade desnecessária?
+9. **Erros** (20 seg): Tratamento explícito?
+10. **Código Morto** (10 seg): Comentários? Imports inúteis?
 
-**Tempo total**: ~3 minutos por arquivo pequeno. Escale conforme complexidade.
+**Tempo total**: ~3-5 minutos por arquivo. **Se falhar em qualidade/SOLID/performance, REJEITE imediatamente.**
 
 ---
 
@@ -333,17 +461,21 @@ src/app/(main)/breeds/components/     # ✅ Feature components
 
 ## Severidade de Issues
 
-| 🔴 Crítico | Bloqueia merge |
+| 🔴 Crítico | Bloqueia merge sem exceção |
 |----------|---|
+| Viola SOLID (múltiplas responsabilidades, aberto/fechado, etc) | Refatore |
+| Código confuso ou desnecessariamente complexo | Simplificar |
+| Redundância evitável | Extrair ou remover |
+| Performance ruim (loops ineficientes, N+1, renders desnecessários) | Otimizar |
+| Manutenibilidade sacrificada | Refatore |
 | Nomenclatura genérica (`helper`, `data`, `util`) | Renomear |
 | Imports quebrados (arquivo não existe) | Remover ou restaurar |
 | Sem error handling em queries/mutations | Adicionar |
-| Client/server boundary violado | Refatorar |
 | Feature component em `src/components/` | Mover para colocation |
 
 | 🟡 Sugestão | Melhore antes de merge |
 |----------|---|
-| Lógica duplicada | Extrair para utils |
+| Lógica duplicada (mas aceitável por enquanto) | Extrair para utils |
 | Zod schema fora de `zod/` | Mover para colocation |
 | Tipos duplicados (não inferindo Zod) | Usar `z.infer<typeof>` |
 | Tailwind classes desorganizadas | Organizar com `cn()` |
@@ -354,6 +486,8 @@ src/app/(main)/breeds/components/     # ✅ Feature components
 | Comentários documentando lógica complexa | Adicionar se ajudar |
 | Refatoração cosmética | Okay, but not required |
 | Nomes ainda mais descritivos | Approve se already clear |
+
+**IMPORTANTE**: 🔴 é REJEÇÃO OBRIGATÓRIA. Sem negociação, sem "depois", sem exceção.
 
 ---
 
@@ -379,16 +513,20 @@ src/app/(main)/breeds/components/     # ✅ Feature components
 
 ## Checklist Rápida
 
-- [ ] Nomenclatura explícita (sem `helper`, `util`, `data`)?
-- [ ] Arquivo no lugar certo (colocation)?
-- [ ] Todos imports usados? Nenhum quebrado?
-- [ ] Segue padrão do projeto (zod, react-query, tailwind)?
-- [ ] Sem duplicação de lógica?
-- [ ] Legível e simples (não over-engineered)?
-- [ ] Error handling explícito?
-- [ ] Sem código morto (comentários, imports inúteis)?
-- [ ] TypeScript tipado (sem `any`)?
-- [ ] Safe to refactor (ou pedir permissão)?
+- [ ] **SOLID**: Não viola (S, O, L, I, D)? Responsabilidade única?
+- [ ] **Performance**: Código é eficiente? Sem operações inúteis, loops ótimos?
+- [ ] **Legibilidade**: Alguém novo entende em < 2 min? Sem confusão?
+- [ ] **Complexidade**: Mesmo resultado com menos linhas e maior clareza?
+- [ ] **Nomenclatura**: Explícita (sem `helper`, `util`, `data`)?
+- [ ] **Colocation**: Arquivo no lugar certo?
+- [ ] **Imports**: Todos usados? Nenhum quebrado?
+- [ ] **Padrão**: Segue pattern do projeto?
+- [ ] **Duplicação**: Sem redundância? DRY aplicado?
+- [ ] **Erros**: Tratamento explícito?
+- [ ] **Código Morto**: Sem comentários, imports inúteis?
+- [ ] **TypeScript**: Tipado (sem `any`)?
+
+**Se QUALQUER crítico falhar = REJEITE.**
 
 ---
 
