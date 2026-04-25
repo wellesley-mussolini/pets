@@ -97,7 +97,7 @@ export default function BreedsPage() {
                     className="text-muted-foreground shrink-0 text-xs tabular-nums"
                     dateTime={row.created_at}
                   >
-                    {dataUtils.formatDateToPtBr(new Date(row.created_at))}
+                    {dataUtils.formatarDataParaPtBr(new Date(row.created_at))}
                   </time>
                 </div>
                 <p className="text-muted-foreground">

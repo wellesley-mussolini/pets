@@ -1,0 +1,31 @@
+---
+description: Nomenclatura clara em todo o projeto — a IA deve sempre seguir ao criar, editar ou revisar qualquer artefato.
+alwaysApply: true
+---
+
+# Nomenclatura clara e intuitiva
+
+Você deve **sempre** aplicar esta regra ao criar, editar, refatorar ou revisar qualquer código, arquivo, pasta, módulo, variável, função, método, tipo, interface, constante, configuração, variável de ambiente, chave de configuração ou outro identificador deste projeto.
+
+A prioridade máxima da nomenclatura neste projeto é **clareza**.
+
+Todo nome deve comunicar exatamente o que representa, o que faz ou qual responsabilidade possui.
+
+O código e a estrutura do repositório devem ser fáceis de entender **apenas lendo os nomes**, sem depender da implementação interna.
+
+## Princípio obrigatório
+
+Sempre escolha nomes claros, descritivos, específicos e alinhados ao domínio do projeto.
+
+Um bom nome deve responder imediatamente, quando fizer sentido para o contexto:
+
+- O que isso é?
+- O que isso faz?
+- Qual dado representa?
+- Qual ação executa?
+- Qual regra aplica?
+- Qual contexto de negócio ou técnico pertence?
+
+Nunca escolha nomes genéricos quando existir uma alternativa mais explícita.
+
+Siga as convenções usuais da linguagem e do ecossistema (por exemplo casing e padrões de arquivos) **sem sacrificar** a clareza: se a convenção deixar o nome ambíguo, prefira o nome mais claro dentro do que for aceitável no stack.

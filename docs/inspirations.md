@@ -1,1 +1,0 @@
-cores -> https://tailwindcss.com/plus/ui-blocks/marketing/elements/headers
