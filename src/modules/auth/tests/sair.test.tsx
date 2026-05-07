@@ -25,13 +25,13 @@ vi.mock("sonner", () => ({
 /**
  * Header — botão de encerrar sessão (Supabase signOut + refresh).
  */
-describe("Header · deslogar (sign-out)", () => {
+describe("Header · sair (encerrar sessão)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignOut.mockResolvedValue({ error: null });
   });
 
-  it("vários cliques rápidos chamam signOut apenas uma vez", async () => {
+  it("deve chamar signOut apenas uma vez mesmo com múltiplos cliques rápidos", async () => {
     mockSignOut.mockImplementation(() => new Promise(() => {}));
 
     const user = userEvent.setup();
@@ -45,7 +45,7 @@ describe("Header · deslogar (sign-out)", () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it("enquanto sign-out pendente, o botão mostra estado de espera", async () => {
+  it("deve mostrar estado de carregamento enquanto signOut está pendente", async () => {
     mockSignOut.mockImplementation(() => new Promise(() => {}));
 
     const user = userEvent.setup();

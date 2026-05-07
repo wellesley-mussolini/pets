@@ -1,0 +1,277 @@
+---
+alwaysApply: true
+---
+
+# Padrão de Nomes de Arquivos do Projeto
+
+**Regra obrigatória**: todos os arquivos devem seguir o padrão de nomenclatura abaixo. Quando identificar arquivo fora do padrão, **atualize imediatamente**.
+
+---
+
+## Padrão geral
+
+```
+<nome-descritivo-em-camelCase>.<tipo-da-pasta>.ts(x)
+```
+
+| Componente | Descrição | Exemplo |
+|---|---|---|
+| `<nome-descritivo>` | Nome claro em **camelCase** (sem hífens, sem underscores) | `mensagensErroSupabase`, `formularioAutenticacao`, `validacaoLogin` |
+| `<tipo-da-pasta>` | Extensão que indica a pasta/contexto onde está | `types`, `constants`, `utils`, `hook`, `component`, `zod`, `test` |
+| Arquivo final | Nome completo com extensão TS/TSX | `mensagensErroSupabase.constants.ts` |
+
+---
+
+## Padrões por tipo de arquivo
+
+### Tipos e Interfaces (`types/` → `.types.ts`)
+
+**OBRIGATÓRIO**: todos os tipos (incluindo `z.infer<>` de Zod) devem estar em `.types.ts`, NUNCA em `.zod.ts`.
+
+```typescript
+// ✅ CORRETO — Tipos em arquivos .types.ts
+usuarioComPets.types.ts
+formularioCadastroValidator.types.ts
+resposta200BuscarPets.types.ts
+
+export type ValoresFormulario = z.infer<typeof esquemasValidacao.entrar>;
+export type PropriedadesBotao = { ... };
+
+// ❌ ERRADO
+usuario-com-pets.types.ts (hífens)
+usuarioComPets.type.ts (extensão errada)
+types.ts (nome genérico)
+tipos-em-zod.types.ts (tipos vindo de .zod.ts importados — use z.infer aqui)
+
+// ❌ GRAVEMENTE ERRADO
+// arquivo: auth.zod.ts
+export type ValoresFormulario = z.infer<typeof esquemasValidacao>;  // PROIBIDO
+```
+
+### Constantes (`constants/` → `.constants.ts`)
+
+```typescript
+// ✅ CORRETO
+mensagensErroSupabaseAuth.constants.ts
+estilosFormularioAutenticacao.constants.ts
+limitesValidacaoLogin.constants.ts
+
+// ❌ ERRADO
+mensagens-erro-supabase.constants.ts (hífens)
+CONSTANTES.constants.ts (UPPERCASE, genérico)
+config.constants.ts (genérico)
+```
+
+### Schemas Zod (`zod/` → `.zod.ts`)
+
+```typescript
+// ✅ CORRETO
+esquemasValidacaoAutenticacao.zod.ts
+schemaCadastroUsuario.zod.ts
+validacaoFormularioPet.zod.ts
+
+// ❌ ERRADO
+esquemas-validacao.zod.ts (hífens)
+schema.zod.ts (genérico)
+auth_zod.ts (underscore, extensão errada)
+```
+
+### Utils e Funções (`utils/` → `.utils.ts`)
+
+```typescript
+// ✅ CORRETO
+formatarDataParaPtBr.utils.ts
+validarFormatoEmailSupabase.utils.ts
+extrairDadosDoUsuarioLogado.utils.ts
+
+// ❌ ERRADO
+format-date.utils.ts (hífens)
+utils.ts (genérico)
+helper_functions.utils.ts (underscore + genérico)
+```
+
+### Hooks (`hooks/` → `.hook.tsx`)
+
+```typescript
+// ✅ CORRETO
+useFormularioAutenticacao.hook.tsx
+useBuscarPetsDoUsuario.hook.tsx
+useAlternadorTemaClaro.hook.tsx
+
+// ❌ ERRADO
+use-formulario.hook.tsx (hífens)
+hook.tsx (genérico)
+useFormulario_auth.hook.tsx (underscore)
+```
+
+### Componentes (`components/` → `.component.tsx`)
+
+```typescript
+// ✅ CORRETO
+formularioAutenticacao.component.tsx
+cartaoPet.component.tsx
+botoesAcao.component.tsx
+
+// ❌ ERRADO
+formulario-autenticacao.component.tsx (hífens)
+component.tsx (genérico)
+ButtonActions_Primary.component.tsx (UPPERCASE + underscore)
+```
+
+### Testes (`tests/` → `.test.ts(x)`)
+
+```typescript
+// ✅ CORRETO
+formularioAutenticacao.test.tsx
+buscarPetsDoUsuario.test.ts
+validarEmailSupabase.test.ts
+
+// ❌ ERRADO
+formulario-autenticacao.test.tsx (hífens)
+test.tsx (genérico)
+FormularioAutenticacao_spec.tsx (UPPERCASE + underscore)
+```
+
+---
+
+## Checklist de validação
+
+**Sempre que criar ou revisar um arquivo, confirme:**
+
+- [ ] Nome em **camelCase** (sem hífens `-`, sem underscores `_`)?
+- [ ] Contém **extensão da pasta** (`.types`, `.constants`, `.utils`, `.hook`, `.component`, `.zod`, `.test`)?
+- [ ] Nome é **específico e descritivo** (não genérico como `file`, `data`, `util`)?
+- [ ] Segue o padrão: `<nome>.<tipo>.ts(x)`?
+- [ ] A extensão TS/TSX está **no final** (não no meio)?
+
+**Se QUALQUER ponto falhar = renomeie imediatamente antes de commitar.**
+
+---
+
+## Quando aplicar
+
+1. ✅ **Criando novo arquivo** — sempre seguir este padrão
+2. ✅ **Encontrando arquivo existente fora do padrão** — renomear imediatamente e atualizar imports
+3. ✅ **Refatorando/reorganizando** — aproveitar para corrigir nomenclatura
+4. ✅ **Durante code review** — rejeitar se não seguir padrão
+
+---
+
+## Referência rápida
+
+| Contexto | Padrão | Exemplo |
+|----------|--------|---------|
+| Tipo/Interface | `nome.types.ts` | `usuarioComPets.types.ts` |
+| Constante | `nome.constants.ts` | `mensagensErro.constants.ts` |
+| Schema Zod | `nome.zod.ts` | `validacaoLogin.zod.ts` |
+| Utilidade/Função | `nome.utils.ts` | `formatarData.utils.ts` |
+| Hook React | `useName.hook.tsx` | `useBuscarPets.hook.tsx` |
+| Componente | `Nome.component.tsx` | `FormularioAuth.component.tsx` |
+| Teste | `nome.test.ts(x)` | `validarEmail.test.ts` |
+
+---
+
+# ⛔ OBRIGATÓRIO: Testes Unitários em 100% do Projeto
+
+**REGRA ABSOLUTA**: Todo arquivo, toda funcionalidade, todo módulo **deve ter testes unitários**. Código sem testes não entra em produção.
+
+## Princípio fundamental
+
+- ✅ **Todo código testável deve ter testes** — componentes, hooks, utils, services, validações, transformações
+- ✅ **Se o teste falha, o problema é no código** (não no teste) — testes revelam bugs reais
+- ✅ **Testes devem rodar e passar** — execute `npx vitest run` antes de commitar
+- ✅ **100% de cobertura de cenários** — sucesso, erro, edge cases, validações, regressão
+
+## O que testar
+
+| Tipo | Exemplos | Quando testar |
+|------|----------|---------------|
+| **Componentes** | Render, interação do usuário, estados, props | Sempre |
+| **Hooks** | Estado inicial, atualização de estado, efeitos colaterais | Sempre |
+| **Utils/Funções** | Entrada válida, entrada inválida, edge cases | Sempre |
+| **Services** | Chamadas HTTP, mocks, sucesso/erro | Sempre |
+| **Validações** | Schemas Zod, regras de negócio, limites | Sempre |
+| **Transformações** | Formatação, conversão, cálculos | Sempre |
+
+## O que NÃO precisa testar
+
+- ❌ Arquivos de configuração (`.config.ts`, `next.config.js`)
+- ❌ Componentes puramente UI do shadcn (`ui/`)
+- ❌ Tipos e Interfaces (defina testes para quem usa os tipos)
+- ❌ Constantes literais simples (mas VALIDE constantes complexas)
+
+## Estrutura e convenção
+
+Cada teste segue o padrão:
+
+```
+src/<contexto>/<modulo>/tests/<arquivo>.test.ts(x)
+```
+
+Exemplos:
+- `src/modules/auth/tests/entrar.test.tsx` — testes do modo entrar
+- `src/modules/auth/tests/sair.test.tsx` — testes do modo sair
+- `src/modules/auth/tests/cadastrar.test.tsx` — testes do modo cadastrar
+- `src/utils/tests/formatarData.test.ts` — testes da função de formatação
+
+## Matriz obrigatória antes de escrever testes
+
+**Nunca escreva teste sem montar a matriz de cenários** (veja `.cursor/agents/qa-tester.mdc`):
+
+```
+Funcionalidade: [nome]
+Entradas: [campos, props, parâmetros]
+Saídas: [retorno, render, efeito]
+
+CENÁRIOS OBRIGATÓRIOS:
+  ✅ Sucesso (happy path)
+  ✅ Erros e impedimentos
+  ✅ Campos ausentes / combinações parciais
+  ✅ Dados inválidos
+  ✅ Edge cases
+  ✅ Regressão (bugs conhecidos)
+```
+
+## Scripts de auditoria para testes
+
+Use o agent `qa-tester` e seus scripts:
+
+```bash
+# Análise de cobertura (bifurcações, chamadas externas, it() existentes)
+python .cursor/skills/qa-tester/scripts/analisar_cobertura_cenarios.py <implementacao> [<teste>]
+
+# Descobrir o que ainda não tem teste no projeto
+python .cursor/skills/qa-tester/scripts/descobrir_modulos_sem_testes.py src
+```
+
+## Executar testes
+
+```bash
+# Rodar todos os testes
+npx vitest run
+
+# Rodar em watch mode (desenvolvimento)
+npx vitest
+
+# Rodar um arquivo específico
+npx vitest src/modules/auth/tests/entrar.test.tsx
+```
+
+## Checklist antes de finalizar
+
+- [ ] Matriz de cenários montada e documentada?
+- [ ] Todos os cenários têm um `it()` correspondente?
+- [ ] Mocks estão corretos (API, navegação, toast, contextos)?
+- [ ] Testes passam com `npx vitest run`?
+- [ ] Nomenclatura segue `deve … quando …`?
+- [ ] Rerun `analisar_cobertura_cenarios.py` — nenhum `it()` fora do padrão?
+
+**Sem testes passando = não está pronto.**
+
+---
+
+## Referência
+
+- Agent: `.cursor/agents/qa-tester.mdc` — como pensar como QA e montar matrizes
+- Skills: `.cursor/skills/qa-tester/` — padrões, exemplos, scripts de auditoria
+- Config: `vitest.config.ts` e `src/tests/setup.ts` — stack do projeto

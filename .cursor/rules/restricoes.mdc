@@ -1,3 +1,144 @@
 ---
 alwaysApply: true
 ---
+
+# Restrições (proibido)
+
+Regista **más práticas a não repetir** — inclui regras genéricas (aplicáveis a qualquer projecto) e regras específicas deste repo (stack, pastas, ferramentas).
+
+---
+
+## ARQUIVO: Padrão correto de nomenclatura (nomes de arquivos)
+
+**NUNCA use hífens em nomes de arquivos `.utils.ts`** — devem ser em **camelCase puro**, correspondendo ao nome da função/ação que contêm.
+
+### ❌ ERRADO — Hífens no arquivo utils
+
+```typescript
+// ❌ ERRADO
+formatador-data.utils.ts          // Tem hífen
+validar-email-supabase.utils.ts   // Tem hífen
+extrair-dados-usuario.utils.ts    // Tem hífen
+
+// Uso fica estranho:
+import { ... } from "./formatador-data.utils";
+```
+
+### ✅ CORRETO — camelCase puro em arquivo utils
+
+```typescript
+// ✅ CORRETO
+formatadorData.utils.ts           // camelCase, sem hífen
+validarEmailSupabase.utils.ts     // camelCase, sem hífen
+extrairDadosUsuario.utils.ts      // camelCase, sem hífen
+
+// Uso é natural:
+import { formatadorData } from "./formatadorData.utils";
+import { validarEmailSupabase } from "./validarEmailSupabase.utils";
+```
+
+### Regra
+
+**Arquivo `.utils.ts` deve ter exatamente o mesmo nome (em camelCase) que a função/objeto exportado.**
+
+Se o arquivo é `formatadorData.utils.ts`, então exporta `formatadorData`.  
+Se o arquivo é `validarEmailSupabase.utils.ts`, então exporta `validarEmailSupabase`.
+
+---
+
+## Cada símbolo na sua "gaveta"
+
+**Nunca declare ou deixe um símbolo (tipo, constante, função, schema) fora do seu lugar correcto no projecto.**
+
+Assim como não se coloca meias na gaveta de blusas, **tipos** devem estar em `types/`, **constantes** em `constants/`, **schemas Zod** em `zod/`, **utilitários** em `utils/`, etc.
+
+### Declarar no lugar errado e depois importar para "passar por cima"
+
+É **proibido** o padrão de:
+
+1. Declarar algo num ficheiro/pasta **incorrectos**
+2. Usar outro ficheiro apenas como ponte de importação/reexportação
+3. Evitar colocar o símbolo no seu lugar correcto
+
+**Exemplos de erro:**
+
+- ❌ Constante CSS definida no componente; deveria estar em `constants/`
+- ❌ Tipo de props de subcomponente definido no componente; deveria estar em `types/`
+- ❌ Tipo inferido do Zod exportado em `zod/foo.zod.ts` e reexportado em `types/foo.types.ts` sem ser **definido** em `types/` — ficheiro `types/` vira apenas um "pass-through"
+- ❌ Esquema Zod declarado em `constants/`; deveria estar em `zod/`
+
+### Regra: cada símbolo no seu ficheiro correcto
+
+- **Tipos específicos do módulo** → `src/modules/<nome>/types/`
+- **Tipos partilhados por vários módulos** → `src/types/` (ou equivalente global acordado)
+- **Constantes do módulo** → `src/modules/<nome>/constants/`
+- **Schemas Zod do módulo** → `src/modules/<nome>/zod/`
+- **Utilitários do módulo** → `src/modules/<nome>/utils/`
+- **Hooks de lógica do módulo** → `src/modules/<nome>/hooks/`
+
+Quem precisa de um símbolo importa **directamente de onde está declarado**:
+
+```typescript
+// ✅ Certo
+import type { MeuTipo } from "../types/meu.types";
+import { minhaConstante } from "../constants/minhas.constants";
+import { esquemasValidacao } from "../zod/validacao.zod";
+import { useLogicaCustomizada } from "../hooks/useLogica.hook";
+
+// ❌ Errado (ficheiro que só reexporta)
+import { MeuTipo, minhaConstante, esquemasValidacao } from "../index.ts";
+```
+
+---
+
+## ⛔ TIPOS NUNCA DEVEM ESTAR EM `.zod.ts`
+
+**PROIBIDO ABSOLUTO**: exportar tipos de um arquivo `.zod.ts`.
+
+### ❌ ERRADO — Tipos em `.zod.ts`
+
+```typescript
+// auth.zod.ts (ERRADO!)
+export const esquemasValidacao = { ... };
+
+export type ValoresFormulario = z.infer<typeof esquemasValidacao.entrar>;
+export type PropriedadesBotao = { ... };  // ← PROIBIDO
+```
+
+### ✅ CORRETO — Tipos em `.types.ts`
+
+```typescript
+// auth.types.ts (CORRETO!)
+export type ValoresFormulario = z.infer<typeof esquemasValidacao.entrar>;
+export type PropriedadesBotao = { ... };
+
+// auth.zod.ts (só schemas)
+export const esquemasValidacao = { ... };
+```
+
+### Regra obrigatória
+
+- **Schemas** → sempre em `zod/*.zod.ts`
+- **Tipos** (incluindo `z.infer`) → sempre em `types/*.types.ts`
+- **Nunca** tipos em `.zod.ts`, nunca
+- Se precisa de tipo inferido de Zod → defina em `types/`, use `z.infer` lá
+
+---
+
+## Ficheiros que só importam para reexportar ("barrel" de passagem)
+
+É **proibido** criar ou manter um ficheiro cuja função seja **apenas** importar algo de outro sítio e **reexportá-lo** para "passar por cima" da organização do projecto. Isto vale para **tipos**, **constantes**, **funções**, **schemas Zod** ou qualquer outro símbolo.
+
+- **Errado:** declarar ou exportar `X` em `zod/foo.zod.ts`, depois em `types/foo.types.ts` fazer `export type { X } from "../zod/foo.zod"` ou `export { constante } from "..."` sem declarar nada no sítio certo.
+- **Certo:** cada símbolo vive no **ficheiro e pasta** que o projecto define para o seu papel (`types/`, `constants/`, `zod/`, etc.). Quem precisa de `X` importa **directamente** de onde `X` está definido.
+
+Se um tipo é inferido a partir de um schema Zod do módulo, a **definição exportada** desse tipo deve estar em **`types/`** do módulo (usando `z.infer` ou equivalente **nesse** ficheiro), e o schema permanece em **`zod/`** — **sem** camada intermédia que só reexporta.
+
+---
+
+## Testes (Vitest neste repo)
+
+- Em **`vitest.config.ts`**, o `test.include` deve ser **um ou poucos globs** que descubram todos os testes pela **convenção**, não uma lista que cresce a cada módulo (`src/app/foo/tests/**`, `src/modules/bar/tests/**`, …).
+- **Convenção:** ficheiros com sufixo **`.test.ts`** ou **`.test.tsx`** dentro de uma pasta **`tests`**, em qualquer nível sob **`src/`**.
+- **Padrão usado aqui:** `src/**/tests/**/*.test.{ts,tsx}`  
+  Novos testes passam a ser encontrados **automaticamente** desde que sigam essa pasta e esse nome de ficheiro.

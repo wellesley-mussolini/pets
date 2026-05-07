@@ -1,5 +1,5 @@
-import { AuthForm } from "./components/auth-form.component";
+import { FormularioAutenticacao } from "../../modules/auth/components/formulario-autenticacao.component";
 
 export default function AuthPage() {
-  return <AuthForm />;
-};
+  return <FormularioAutenticacao />;
+}

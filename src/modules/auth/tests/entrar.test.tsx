@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthForm } from "../components/auth-form.component";
+import { FormularioAutenticacao } from "../components/formulario-autenticacao.component";
 
 const mockRpc = vi.fn();
 const mockSignInWithPassword = vi.fn();
@@ -29,10 +29,10 @@ vi.mock("sonner", () => ({
 }));
 
 /**
- * AuthForm no modo **Entrar** (login + senha).
- * Default do componente: isLogin === true.
+ * FormularioAutenticacao no modo **Entrar** (login + senha).
+ * Estado inicial: modoEhEntrar === true.
  */
-describe("AuthForm · entrar (sign-in)", () => {
+describe("FormularioAutenticacao · entrar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRpc.mockResolvedValue({ data: "user@test.com", error: null });
@@ -40,14 +40,14 @@ describe("AuthForm · entrar (sign-in)", () => {
   });
 
   describe("bloqueio de envio duplicado e chamadas à rede", () => {
-    it("com sign-in pendente, vários cliques em Entrar chamam signInWithPassword apenas uma vez", async () => {
+    it("deve chamar signInWithPassword apenas uma vez quando há vários cliques durante autenticação pendente", async () => {
       mockSignInWithPassword.mockImplementation(() => new Promise(() => {}));
 
       const user = userEvent.setup();
-      render(<AuthForm />);
+      render(<FormularioAutenticacao />);
 
-      await user.type(screen.getByPlaceholderText("Login"), "meulogin");
-      await user.type(screen.getByPlaceholderText("Senha"), "secret12");
+      await user.type(screen.getByLabelText(/^login$/i), "meulogin");
+      await user.type(screen.getByLabelText(/^senha$/i), "secret12");
 
       const botaoEntrar = screen.getByRole("button", { name: /entrar/i });
       await user.click(botaoEntrar);
@@ -57,7 +57,7 @@ describe("AuthForm · entrar (sign-in)", () => {
       expect(mockSignInWithPassword).toHaveBeenCalledTimes(1);
     });
 
-    it("com RPC em erro, libera nova tentativa e o segundo envio chama signInWithPassword", async () => {
+    it("deve liberar nova tentativa quando RPC falha e permitir segundo envio", async () => {
       mockRpc
         .mockResolvedValueOnce({
           data: null,
@@ -66,10 +66,10 @@ describe("AuthForm · entrar (sign-in)", () => {
         .mockResolvedValueOnce({ data: "user@test.com", error: null });
 
       const user = userEvent.setup();
-      render(<AuthForm />);
+      render(<FormularioAutenticacao />);
 
-      await user.type(screen.getByPlaceholderText("Login"), "meulogin");
-      await user.type(screen.getByPlaceholderText("Senha"), "secret12");
+      await user.type(screen.getByLabelText(/^login$/i), "meulogin");
+      await user.type(screen.getByLabelText(/^senha$/i), "secret12");
       await user.click(screen.getByRole("button", { name: /entrar/i }));
 
       expect(mockSignInWithPassword).not.toHaveBeenCalled();
@@ -79,9 +79,9 @@ describe("AuthForm · entrar (sign-in)", () => {
       expect(mockSignInWithPassword).toHaveBeenCalledTimes(1);
     });
 
-    it("não chama RPC nem signIn quando login e senha estão vazios", async () => {
+    it("deve não chamar RPC nem signIn quando login e senha estão vazios", async () => {
       const user = userEvent.setup();
-      render(<AuthForm />);
+      render(<FormularioAutenticacao />);
 
       await user.click(screen.getByRole("button", { name: /entrar/i }));
 
@@ -91,14 +91,14 @@ describe("AuthForm · entrar (sign-in)", () => {
   });
 
   describe("UI de carregamento", () => {
-    it("durante sign-in pendente, o botão mostra estado de espera e fica desabilitado", async () => {
+    it("deve desabilitar o botão durante autenticação pendente", async () => {
       mockSignInWithPassword.mockImplementation(() => new Promise(() => {}));
 
       const user = userEvent.setup();
-      render(<AuthForm />);
+      render(<FormularioAutenticacao />);
 
-      await user.type(screen.getByPlaceholderText("Login"), "meulogin");
-      await user.type(screen.getByPlaceholderText("Senha"), "secret12");
+      await user.type(screen.getByLabelText(/^login$/i), "meulogin");
+      await user.type(screen.getByLabelText(/^senha$/i), "secret12");
       await user.click(screen.getByRole("button", { name: /entrar/i }));
 
       await waitFor(() => {

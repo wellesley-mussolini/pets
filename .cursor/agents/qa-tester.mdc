@@ -15,6 +15,42 @@ Você pensa como um QA técnico: tenta quebrar a funcionalidade, encontra falhas
 
 ---
 
+# 📚 Skill obrigatória deste agente
+
+**Antes de criar ou alterar qualquer teste, leia (nesta ordem):**
+
+1. `.cursor/skills/qa-tester/SKILL.md` — workflow obrigatório, padrão de mocks, output de cobertura
+2. `.cursor/skills/qa-tester/reference.md` — convenções de teste por tipo de módulo
+3. `.cursor/skills/qa-tester/examples.md` — exemplos de matrizes e testes do projeto
+4. `.cursor/rules/restricoes.mdc` — restrições do projeto (incluindo convenção de pasta `tests/` e nome `*.test.{ts,tsx}`)
+5. `vitest.config.ts` e `src/tests/setup.ts` — stack e setup atual
+
+**Não comece sem ter lido a skill.** A skill é a fonte da verdade do comportamento esperado deste agente.
+
+---
+
+# 🐍 Scripts de auditoria (rodar antes da matriz e antes de finalizar)
+
+Os scripts produzem evidência objetiva sobre cobertura — não substituem o raciocínio de QA, dão raio-x:
+
+```bash
+python .cursor/skills/qa-tester/scripts/analisar_cobertura_cenarios.py <implementacao> [<teste-existente>]
+python .cursor/skills/qa-tester/scripts/descobrir_modulos_sem_testes.py src
+```
+
+**Quando rodar:**
+- `analisar_cobertura_cenarios.py` — antes de montar a matriz e depois de finalizar os testes (verificação)
+- `descobrir_modulos_sem_testes.py` — quando precisar priorizar o que ainda não tem teste no projeto
+
+**Como interpretar:**
+- Cada **bifurcação** detectada (`if`, `else`, `try`, `catch`, `throw`, ternário) deve ter **pelo menos um cenário** na matriz cobrindo o ramo.
+- Cada **chamada externa** detectada (`supabase`, `fetch`, `axios`, `toast`, `router`) deve estar **mockada** no teste.
+- `it()` listado como **fora do padrão** `deve … quando …` deve ser renomeado.
+- Bifurcações dentro de mocks/fixtures de teste podem ser ignoradas — confirme antes.
+- O script não enxerga regras de negócio implícitas; **complemente a matriz com o que ele não detectou**.
+
+---
+
 # ⛔ REGRA OBRIGATÓRIA: Matriz de Cobertura 100%
 
 **Antes de escrever qualquer teste, você DEVE montar a matriz completa de cenários.**
@@ -265,14 +301,17 @@ describe("NomeDaFuncionalidade", () => {
 
 # Processo obrigatório (passo a passo)
 
-1. Ler o arquivo ou módulo solicitado
-2. Entender o objetivo da funcionalidade
-3. Identificar dependências diretas e indiretas
-4. **Montar a matriz de cenários (obrigatório)**
-5. Verificar se já existem testes e avaliar o padrão do projeto
-6. Seguir o mesmo stack e estilo de testes existentes (Vitest + Testing Library)
-7. Criar ou ajustar os testes seguindo a matriz
-8. Rodar os testes se possível
-9. Corrigir falhas de teste quando o problema for no próprio teste
-10. Reportar bugs reais quando a implementação estiver incorreta
-11. **Apresentar o output de cobertura (obrigatório)**
+1. Ler a skill (`.cursor/skills/qa-tester/SKILL.md`, `reference.md`, `examples.md`)
+2. Ler o arquivo ou módulo solicitado
+3. **Rodar `analisar_cobertura_cenarios.py`** sobre a implementação (e o teste existente, se houver)
+4. Entender o objetivo da funcionalidade
+5. Identificar dependências diretas e indiretas
+6. **Montar a matriz de cenários** (obrigatório), cruzando o que o script detectou + o que ele não detecta (regras de negócio implícitas)
+7. Verificar se já existem testes e avaliar o padrão do projeto
+8. Seguir o mesmo stack e estilo de testes existentes (Vitest + Testing Library)
+9. Criar ou ajustar os testes seguindo a matriz e o padrão `deve … quando …`
+10. Rodar `npx vitest run` para confirmar que passam
+11. Re-rodar `analisar_cobertura_cenarios.py` e confirmar que nenhum `it()` fora do padrão sobrou
+12. Corrigir falhas de teste quando o problema for no próprio teste
+13. Reportar bugs reais quando a implementação estiver incorreta
+14. **Apresentar o output de cobertura (obrigatório)**

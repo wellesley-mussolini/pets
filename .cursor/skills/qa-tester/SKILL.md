@@ -38,20 +38,45 @@ CENÁRIOS:
 
 ## Workflow Obrigatório
 
-### Passo 1: Ler e entender
+### Passo 1: Rodar a auditoria automática
+
+Antes de montar a matriz, peça evidência objetiva ao script:
+
+```bash
+python .cursor/skills/qa-tester/scripts/analisar_cobertura_cenarios.py <implementacao> [<teste-existente>]
+```
+
+E, para descobrir o que ainda nem tem teste no projeto:
+
+```bash
+python .cursor/skills/qa-tester/scripts/descobrir_modulos_sem_testes.py src
+```
+
+O que cada script entrega:
+
+- `analisar_cobertura_cenarios.py` — lista símbolos exportados, **pontos de bifurcação** (`if`/`else`/`try`/`catch`/`throw`/ternário), **chamadas externas** que precisam de mock (supabase, fetch, axios, toast, router), `describe`/`it` existentes no teste e `it()` fora do padrão `deve … quando …`.
+- `descobrir_modulos_sem_testes.py` — varre `src/` e lista componentes/hooks/utils que ainda não têm um arquivo `<nome>.test.{ts,tsx}` correspondente.
+
+**Como tratar a saída**:
+- Cada bifurcação detectada **deve virar pelo menos um cenário** na matriz (ramo verdadeiro + ramo falso).
+- Cada chamada externa detectada **deve estar mockada** no teste — confirme.
+- `it()` fora do padrão `deve … quando …` **devem ser renomeados** antes de finalizar.
+- O script não enxerga regras de negócio implícitas; complete a matriz com o que ele não detectou.
+
+### Passo 2: Ler e entender
 
 - Ler o arquivo/módulo solicitado completo
 - Identificar: o que recebe, o que retorna, o que renderiza, o que chama
 - Mapear dependências externas (o que precisa ser mockado)
 - Verificar se já existem testes
 
-### Passo 2: Montar a matriz
+### Passo 3: Montar a matriz
 
 - Listar todos os cenários da funcionalidade
 - Agrupar por categoria (sucesso, erro, ausentes, inválidos, edge, regressão)
 - Identificar quais já estão cobertos e quais estão faltando
 
-### Passo 3: Implementar os testes
+### Passo 4: Implementar os testes
 
 - Seguir o padrão de testes existente no projeto (Vitest + Testing Library)
 - Escrever um `it()` por cenário, com nome descritivo em português
@@ -59,13 +84,14 @@ CENÁRIOS:
 - Testar comportamento — o que o usuário/sistema vê e recebe
 - Não testar detalhes internos de implementação
 
-### Passo 4: Rodar e validar
+### Passo 5: Rodar e validar
 
-- Executar `npm test` ou `vitest run` para confirmar que os testes passam
+- Executar `npx vitest run` para confirmar que os testes passam
 - Corrigir falhas que forem problemas no próprio teste
 - Sinalizar bugs reais encontrados na implementação (sem corrigir automaticamente)
+- Re-rodar `analisar_cobertura_cenarios.py` e confirmar que nenhum `it()` fora do padrão sobrou
 
-### Passo 5: Apresentar cobertura
+### Passo 6: Apresentar cobertura
 
 - Sempre apresentar o output de cobertura ao final
 - Listar cenários cobertos e não cobertos com justificativa
@@ -165,6 +191,19 @@ Cenários cobertos: X de Y
 
 Arquivos: [lista de arquivos criados/alterados]
 ```
+
+---
+
+## Scripts de auditoria
+
+Disponíveis em `.cursor/skills/qa-tester/scripts/`:
+
+| Script | Quando rodar | Saída |
+|--------|--------------|-------|
+| `analisar_cobertura_cenarios.py <impl> [<teste>]` | Antes de montar a matriz e antes de finalizar | Bifurcações, chamadas externas, `it()` existentes, `it()` fora do padrão |
+| `descobrir_modulos_sem_testes.py [<raiz>]` | Para encontrar componentes/hooks/utils ainda sem teste no projeto | Lista de arquivos sem teste correspondente |
+
+Os scripts usam apenas Python stdlib (3.10+). Saem em UTF-8 mesmo no PowerShell. Use como evidência técnica para a matriz — eles **não substituem** o raciocínio de QA, só fornecem o raio-x inicial.
 
 ---
 

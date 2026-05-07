@@ -17,7 +17,7 @@ import {
   BREED_SIZE_LABELS_PT_BR,
   type SupabaseBreedRows,
 } from "./types/breeds.types";
-import { dataUtils } from "@/utils/data.utils";
+import { formatadorData } from "@/utils/formatadorData.utils";
 
 export default function BreedsPage() {
   const [dialogOpen, setDialogOpen] = React.useState<boolean>(false);
@@ -97,7 +97,7 @@ export default function BreedsPage() {
                     className="text-muted-foreground shrink-0 text-xs tabular-nums"
                     dateTime={row.created_at}
                   >
-                    {dataUtils.formatarDataParaPtBr(new Date(row.created_at))}
+                    {formatadorData.paraPtBr(new Date(row.created_at))}
                   </time>
                 </div>
                 <p className="text-muted-foreground">

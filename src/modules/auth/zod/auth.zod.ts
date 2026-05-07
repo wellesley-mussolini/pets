@@ -1,13 +1,13 @@
 import { regexUtils } from "@/utils/regex.utils";
 import { z } from "zod";
 
-export const authZod = {
-  login: z.object({
+export const esquemasValidacaoAutenticacao = {
+  entrar: z.object({
     login: z.string().trim().min(1, "Informe seu login."),
     password: z.string().min(1, "Informe sua senha."),
   }),
 
-  signUp: z
+  cadastrar: z
     .object({
       email: z
         .string()
@@ -20,9 +20,9 @@ export const authZod = {
         .min(3, "O login deve ter pelo menos 3 caracteres.")
         .max(30, "O login pode ter no máximo 30 caracteres.")
         .refine(
-          (value) =>
-            value ===
-            regexUtils.manterApenasLetrasSemCaracteresEspeciais(value),
+          (textoLogin) =>
+            textoLogin ===
+            regexUtils.manterApenasLetrasSemCaracteresEspeciais(textoLogin),
           "Use apenas letras, sem caracteres especiais.",
         ),
       password: z
@@ -30,11 +30,13 @@ export const authZod = {
         .min(6, "A senha deve ter pelo menos 6 caracteres."),
       confirmPassword: z.string().min(1, "Confirme sua senha."),
     })
-    .refine((password) => password.password === password.confirmPassword, {
-      message: "As senhas não conferem.",
-      path: ["confirmPassword"],
-    }),
+    .refine(
+      (valoresFormularioCadastro) =>
+        valoresFormularioCadastro.password ===
+        valoresFormularioCadastro.confirmPassword,
+      {
+        message: "As senhas não conferem.",
+        path: ["confirmPassword"],
+      },
+    ),
 };
-
-export type LoginValues = z.infer<typeof authZod.login>;
-export type SignUpValues = z.infer<typeof authZod.signUp>;

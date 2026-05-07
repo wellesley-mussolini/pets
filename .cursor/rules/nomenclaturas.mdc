@@ -7,25 +7,213 @@ alwaysApply: true
 
 Você deve **sempre** aplicar esta regra ao criar, editar, refatorar ou revisar qualquer código, arquivo, pasta, módulo, variável, função, método, tipo, interface, constante, configuração, variável de ambiente, chave de configuração ou outro identificador deste projeto.
 
-A prioridade máxima da nomenclatura neste projeto é **clareza**.
+A prioridade máxima da nomenclatura neste projeto é **clareza absoluta**.
 
-Todo nome deve comunicar exatamente o que representa, o que faz ou qual responsabilidade possui.
+Todo nome deve comunicar exatamente:
+- **O que é?** (tipo de dado, categoria)
+- **Qual seu propósito específico?** (não apenas genérico)
+- **Qual contexto de negócio pertence?** (domínio, feature, significado)
 
-O código e a estrutura do repositório devem ser fáceis de entender **apenas lendo os nomes**, sem depender da implementação interna.
+O código deve ser fácil de entender **apenas lendo os nomes**, sem depender da implementação interna.
 
-## Princípio obrigatório
+---
 
-Sempre escolha nomes claros, descritivos, específicos e alinhados ao domínio do projeto.
+## Princípio obrigatório: Ser específico, não genérico
 
-Um bom nome deve responder imediatamente, quando fizer sentido para o contexto:
+**NUNCA use nomes vagos ou abstratos.** Um nome deve responder imediatamente ao leitor qual é a **intenção exata** e o **domínio específico** do símbolo.
 
-- O que isso é?
-- O que isso faz?
-- Qual dado representa?
-- Qual ação executa?
-- Qual regra aplica?
-- Qual contexto de negócio ou técnico pertence?
+### ❌ ERRADO — Genérico, vago, sem contexto específico
 
-Nunca escolha nomes genéricos quando existir uma alternativa mais explícita.
+```typescript
+// Errado: "Respostas" é vago (respostas de quê? Para quê?)
+// "Texto" é redundante (dados são sempre texto)
+// "Supabase" é genérico (qual aspecto do Supabase?)
+export const respostasTextoSupabaseAutenticacao = { ... };
 
-Siga as convenções usuais da linguagem e do ecossistema (por exemplo casing e padrões de arquivos) **sem sacrificar** a clareza: se a convenção deixar o nome ambíguo, prefira o nome mais claro dentro do que for aceitável no stack.
+// Errado: Não fica claro que é especificamente sobre ERROS
+const mensagensAutenticacao = { ... };
+
+// Errado: Qual dados? Que formato? Para quê?
+const dados = { ... };
+
+// Errado: Helper faz o quê? Não diz nada
+function helper() { ... }
+
+// Errado: Qual utilidade? Muito vago
+const utils = { ... };
+
+// Errado: Qual ação? Handler de quê?
+function handleClick() { ... }
+
+// Errado: Qual informação? Que tipo de info?
+const info = { ... };
+```
+
+### ✅ CORRETO — Específico, claro, intenção evidente
+
+```typescript
+// Correto: Deixa claro QUE SÃO ERROS do Supabase Auth
+// E qual o propósito: validação por comparação de mensagens
+export const mensagensErroSupabaseAuth = {
+  credenciaisInvalidas: "Invalid login credentials",
+  emailNaoConfirmado: "Email not confirmed",
+} as const;
+
+// Correto: "Erro" deixa explícito que são mensagens de falha
+const mensagensErroAutenticacao = { ... };
+
+// Correto: Especifica QUAL dado e seu propósito
+const usuariosAtivosNoSistema = { ... };
+
+// Correto: O nome diz exatamente o que valida
+function validarFormatoEmailSupabase() { ... }
+
+// Correto: Especifica qual é a utilidade
+const regexValidacaoLogin = { ... };
+
+// Correto: Deixa claro qual evento e qual ação
+function aoClicarBotaoEntrar() { ... }
+
+// Correto: Identifica exatamente qual informação é
+const tokenAutenticacaoDoUsuario = { ... };
+```
+
+---
+
+## Regra de ouro: Nome ≠ Implementação
+
+O **nome não deve descrever a implementação**, deve descrever o **propósito e significado do domínio**.
+
+### ❌ ERRADO — Descreve implementação (array, objeto, etc)
+
+```typescript
+const arrayMensagens = { ... };   // Dizem que é array
+const objetoDados = { ... };      // Diz que é objeto (óbvio)
+const stringResposta = "...";     // Diz que é string (redundante)
+const funcaoFetch = () => { ... }; // Diz que é função (óbvio)
+```
+
+### ✅ CORRETO — Descreve propósito no domínio
+
+```typescript
+// A IA entende que é um objeto/array/set pelo contexto
+const mensagensErroSupabaseAuth = { ... };   // Óbvio que é uma estrutura de dados
+const valoresFormularioCadastro = { ... };   // Claro que são dados de um formulário
+const codigoConfirmacaoEmail = "...";        // Não precisa dizer "string"
+const buscarPetsPorRaca = () => { ... };     // Não precisa dizer "função"
+```
+
+---
+
+## Regra prática: 3 palavras-chave mínimas (em 80% dos casos)
+
+Um bom nome tem **pelo menos 3 elementos informativos**:
+
+| Elemento | Descrição | Exemplo |
+|----------|-----------|---------|
+| **Tipo/Categoria** | O que é (dados, erro, resposta, validação, lista, mapa)? | `erro`, `mensagem`, `constante`, `lista`, `mapa` |
+| **Aspecto específico** | Qual aspecto ou subcategoria? | `Supabase`, `formulario`, `autenticacao`, `email` |
+| **Contexto/Domínio** | Qual é a intenção exata no negócio? | `Auth`, `Login`, `Cadastro`, `Validacao` |
+
+### Exemplos ruins vs corretos
+
+| Genérico (❌) | Melhor (⚠️) | Correto (✅) |
+|---|---|---|
+| `dados` | `dadosUsuario` | `perfilCompletoDoUsuario` / `usuariosAtivosNoMes` |
+| `mensagens` | `msgErro` | `mensagensErroSupabaseAuth` |
+| `util` | `utilsData` | `formatarDataParaPtBr` |
+| `handler` | `handleSubmit` | `aoEnviarFormularioCadastro` |
+| `info` | `infoBreed` | `detalhesDaRacaComValoracoesDoUsuario` |
+| `resposta` | `respostaApi` | `resposta200DoBuscarPetsPorRaca` |
+
+---
+
+## Nomes de Constantes (especialmente importantes)
+
+Constantes **devem deixar cristalino qual é o valor conceitual**, não apenas listar valores.
+
+### ❌ ERRADO
+
+```typescript
+// Arquivo: resposta-autenticacao.constants.ts
+export const DADOS_AUTENTICACAO = { ... }; // Vago
+
+export const CONSTANTES = { ... }; // Genérico demais
+
+export const CONFIG = { ... }; // Qual config?
+```
+
+### ✅ CORRETO
+
+```typescript
+// Arquivo: mensagens-erro-supabase-auth.constants.ts
+export const mensagensErroSupabaseAuth = {
+  credenciaisInvalidas: "Invalid login credentials",
+  emailNaoConfirmado: "Email not confirmed",
+} as const;
+
+// Arquivo: estilos-formulario-autenticacao.constants.ts
+export const estilosFormularioAutenticacao = {
+  inputCompartilhado: "h-auto rounded-md bg-white px-3 py-3...",
+} as const;
+
+// Arquivo: limites-validacao-login.constants.ts
+export const limitesValidacaoLogin = {
+  tamanhoMinimoLogin: 3,
+  tamanhoMaximoLogin: 30,
+} as const;
+```
+
+---
+
+## Nomes de arquivos (especialmente com `.constants.ts`)
+
+O padrão é `<o-que-contem>.constants.ts`, mas o **prefixo `<o-que-contem>` deve ser específico**.
+
+### ❌ ERRADO
+
+```
+respostas-texto-supabase-autenticacao.constants.ts
+↑ Redundante e vago
+```
+
+### ✅ CORRETO
+
+```
+mensagens-erro-supabase-auth.constants.ts
+↑ Deixa claro que são ERROS (não sucessos, não avisos)
+
+estilos-formulario-autenticacao.constants.ts
+↑ Claro que são estilos CSS de um formulário
+
+limites-validacao-login.constants.ts
+↑ Deixa claro que são limites (min/max) de validação
+```
+
+---
+
+## Checklist para nomenclatura
+
+**Antes de finalizar um nome, responda:**
+
+- [ ] Alguém novo no projeto entenderia em **menos de 5 segundos** o que é?
+- [ ] O nome deixa **cristalino o propósito específico** (não genérico)?
+- [ ] O nome tem **pelo menos 3 elementos informativos** (tipo + aspecto + contexto)?
+- [ ] Usei **termos do domínio do projeto** (autenticação, formulário, validação)?
+- [ ] Evitei **palavras vazias** (data, info, resposta, handler, util, helper, common)?
+- [ ] Se é uma constante/erro/validação, o **tipo está explícito** (erro, sucesso, aviso, limite)?
+- [ ] O arquivo/função/variável **comunica intenção**, não implementação?
+- [ ] Segui a **convenção de casing** do stack (camelCase, PascalCase, snake_case) **sem sacrificar clareza**?
+
+**Se QUALQUER resposta for "não" ou "talvez", renomeie antes de commitar.**
+
+---
+
+## Exceções raramente aceitas
+
+Há apenas **2 casos** onde um nome genérico é aceitável:
+
+1. **Loop temporário**: `for (const item of itens)` — `item` é genérico, mas é óbvio (contexto imediato)
+2. **Callback ou placeholder provisório**: `callback(data)` — é temporário durante desenvolvimento
+
+Tudo mais **deve ter nome específico**.
